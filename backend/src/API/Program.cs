@@ -52,9 +52,6 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
-        var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(",")
-            ?? Array.Empty<string>();
-
         policy
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -62,8 +59,16 @@ builder.Services.AddCors(options =>
             .WithOrigins(
                 "http://localhost:8080",
                 "https://localhost:8080"
-            )
-            .WithOrigins(allowedOrigins);
+            );
+
+        var allowedOrigins = (
+            Environment.GetEnvironmentVariable("AllowedOrigins")
+            ?? builder.Configuration["AllowedOrigins"]
+            ?? ""
+        ).Split(",", StringSplitOptions.RemoveEmptyEntries);
+
+        if (allowedOrigins.Length > 0)
+            policy.WithOrigins(allowedOrigins);
     });
 });
 var app = builder.Build();
