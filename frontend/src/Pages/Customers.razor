@@ -89,7 +89,7 @@
         </div>
         <AppInput Label="E-mail" Required="true" Type="email" @bind-Value="_form.Email"
                   Placeholder="nome@exemplo.com" Error="@Err("email")" />
-        <AppInput Label="CPF" Required="true" Value="_cpfText" ValueChanged="OnCpfChanged"
+        <AppInput Label="CPF" Required="true" Value="@_cpfText" ValueChanged="OnCpfChanged"
                   Placeholder="000.000.000-00" Error="@Err("cpf")"
                   Hint="@_cpfHint" HintOk="_cpfOk" />
         <div class="field">
