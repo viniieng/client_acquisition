@@ -7,7 +7,8 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Use API base address pointing to backend API endpoints (include /api/)
+// HttpClient pointing at the backend API. BaseAddress must end with "/api/" so the
+// relative endpoints in ApiClient (e.g. "customers") resolve to ".../api/customers".
 builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5000/api/")

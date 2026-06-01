@@ -88,7 +88,6 @@ catch
 }
 
 app.UseCors("Frontend");
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 

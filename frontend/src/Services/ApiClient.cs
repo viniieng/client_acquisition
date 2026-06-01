@@ -14,11 +14,11 @@ public sealed class ApiClient
 
     public async Task<List<CustomerResponseDto>> GetCustomersAsync()
     {
-        return await _httpClient.GetFromJsonAsync<List<CustomerResponseDto>>("api/customers") ?? new List<CustomerResponseDto>();
+        return await _httpClient.GetFromJsonAsync<List<CustomerResponseDto>>("customers") ?? new List<CustomerResponseDto>();
     }
 
     public async Task<List<OrderResponseDto>> GetOrdersAsync()
     {
-        return await _httpClient.GetFromJsonAsync<List<OrderResponseDto>>("api/orders") ?? new List<OrderResponseDto>();
+        return await _httpClient.GetFromJsonAsync<List<OrderResponseDto>>("orders") ?? new List<OrderResponseDto>();
     }
 }

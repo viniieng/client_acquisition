@@ -135,3 +135,27 @@ a {
         padding: 20px;
     }
 }
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.75rem 1.25rem;
+    background: #fff3cd;
+    color: #664d03;
+    border-top: 1px solid #ffe69c;
+    box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+#blazor-error-ui .reload {
+    margin-left: 0.75rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+#blazor-error-ui .dismiss {
+    float: right;
+    cursor: pointer;
+}

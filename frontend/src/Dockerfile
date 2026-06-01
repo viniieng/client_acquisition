@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 COPY ClientAcquisition.sln ./
@@ -14,17 +14,6 @@ WORKDIR /server
 
 COPY frontend/src/server/main.go .
 RUN go build -o /out/spa-server main.go
-
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-WORKDIR /src
-
-COPY ClientAcquisition.sln ./
-COPY frontend/src/ClientAcquisition.Frontend.csproj frontend/src/
-
-RUN dotnet restore frontend/src/ClientAcquisition.Frontend.csproj
-
-COPY . .
-RUN dotnet publish frontend/src/ClientAcquisition.Frontend.csproj -c Release -o /app/publish
 
 FROM scratch AS runtime
 WORKDIR /www
