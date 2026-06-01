@@ -21,22 +21,7 @@ A solução segue uma Clean Architecture simplificada, separada em:
 - Swagger / OpenAPI
 - Blazor WebAssembly
 - xUnit
-## Status Atual
 
-O repositório já foi estruturado e as regras centrais de negócio foram implementadas. O próximo passo é expandir a UI, gerar migrations reais e concluir os ajustes de infraestrutura para produção.
-## Estrutura de Pastas
-
-```text
-/backend
-  /src
-    /API
-    /Application
-    /Domain
-    /Infrastructure
-  /tests
-/frontend
-  /src
-```
 ## Como Executar Localmente
 
 1. Instale o SDK do .NET 8.
@@ -64,8 +49,8 @@ Os testes unitários cobrem:
 
 ## Deploy
 
-- Backend: Render, Railway ou Fly.io usando o Dockerfile da API.
-- Frontend: Vercel ou host estático compatível.
+- Backend: Render.
+- Frontend: Render.
 - Banco: Supabase PostgreSQL.
 
 ## Próximos Passos
