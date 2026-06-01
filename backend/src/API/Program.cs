@@ -8,6 +8,10 @@ using ClientAcquisition.Infrastructure;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 
+// Load variables from a .env file (searching up to the repo root) so SUPABASE_CONNECTION_STRING
+// works with `dotnet run`, matching the README. Existing process env vars take precedence.
+DotNetEnv.Env.TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Allow overriding the connection string via environment variable (useful for Supabase)
