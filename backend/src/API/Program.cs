@@ -74,21 +74,25 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Apply pending EF Core migrations at startup (development convenience)
-try
+// Apply pending EF Core migrations at startup (development convenience). If the schema was
+// created manually (e.g. directly in Supabase), the migration history is baselined instead of
+// re-creating the existing tables.
+using (var scope = app.Services.CreateScope())
 {
-    using (var scope = app.Services.CreateScope())
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var appDb = services.GetService<ClientAcquisition.Infrastructure.Persistence.ApplicationDbContext>();
+    if (appDb != null)
     {
-        var appDb = scope.ServiceProvider.GetService<ClientAcquisition.Infrastructure.Persistence.ApplicationDbContext>();
-        if (appDb != null)
+        try
         {
-            appDb.Database.Migrate();
+            ClientAcquisition.Api.DatabaseInitializer.Initialize(appDb, logger);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Database initialization failed at startup.");
         }
     }
-}
-catch
-{
-    // Migration errors will be logged by the framework - do not crash startup here
 }
 
 app.UseCors("Frontend");
