@@ -53,13 +53,6 @@ Os testes unitários cobrem:
 - Frontend: Render.
 - Banco: Supabase PostgreSQL.
 
-## Próximos Passos
-
-1. Gerar migrations do EF Core a partir do `DbContext` configurado.
-2. Completar as telas do Blazor com cadastro, edição, exclusão e detalhe.
-3. Finalizar o suporte de produção com logging, paginação e tratamento de erros mais completo.
-# Client Acquisition
-
 Monorepo for a customer and order management platform built with ASP.NET Core .NET 8 and Blazor WebAssembly.
 
 ## Architecture
