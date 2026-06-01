@@ -5,6 +5,7 @@ using ClientAcquisition.Application.Orders;
 using ClientAcquisition.Application.Reports;
 using ClientAcquisition.Application.Mapping;
 using ClientAcquisition.Infrastructure;
+using ClientAcquisition.Infrastructure.Configuration;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +21,15 @@ var envConn = Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_STRING")
 if (!string.IsNullOrWhiteSpace(envConn))
 {
     builder.Configuration["ConnectionStrings:DefaultConnection"] = envConn;
+}
+
+// Accept both the Npgsql keyword format and a postgres:// URI (e.g. the one Supabase
+// shows in its dashboard) by normalizing whatever was configured.
+var resolvedConn = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!string.IsNullOrWhiteSpace(resolvedConn))
+{
+    builder.Configuration["ConnectionStrings:DefaultConnection"] =
+        PostgresConnectionString.Normalize(resolvedConn);
 }
 
 builder.Services.AddControllers();
