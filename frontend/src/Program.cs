@@ -11,7 +11,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 // relative endpoints in ApiClient (e.g. "customers") resolve to ".../api/customers".
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5000/api/")
+    BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://client-acquisition-l9g5.onrender.com/api/")
 });
 
 builder.Services.AddScoped<ApiClient>();
