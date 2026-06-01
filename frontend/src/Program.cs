@@ -15,5 +15,6 @@ builder.Services.AddScoped(sp => new HttpClient
 });
 
 builder.Services.AddScoped<ApiClient>();
+builder.Services.AddScoped<ToastService>();
 
 await builder.Build().RunAsync();

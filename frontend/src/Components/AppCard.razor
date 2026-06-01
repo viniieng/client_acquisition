@@ -1,0 +1,27 @@
+<div class="card @Class">
+    @if (!string.IsNullOrEmpty(Title) || HeaderActions is not null)
+    {
+        <div class="card-header">
+            <div>
+                @if (!string.IsNullOrEmpty(Title)) { <h3 class="card-title">@Title</h3> }
+                @if (!string.IsNullOrEmpty(Subtitle)) { <p class="card-subtitle">@Subtitle</p> }
+            </div>
+            @if (HeaderActions is not null)
+            {
+                <div>@HeaderActions</div>
+            }
+        </div>
+    }
+    <div class="card-body @(Flush ? "flush" : null)">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public bool Flush { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? HeaderActions { get; set; }
+}

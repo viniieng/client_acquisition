@@ -1,0 +1,28 @@
+<button type="@Type" class="btn @VariantClass @SizeClass @(Block ? "btn-block" : null) @Class"
+        disabled="@(Disabled || Loading)" @onclick="OnClick">
+    @if (Loading)
+    {
+        <span class="btn-spin"></span>
+    }
+    else if (!string.IsNullOrEmpty(Icon))
+    {
+        <Icon Name="@Icon" Class="nav-icon" />
+    }
+    @ChildContent
+</button>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Variant { get; set; } = "primary";
+    [Parameter] public string Type { get; set; } = "button";
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public bool Loading { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public bool Block { get; set; }
+    [Parameter] public bool Small { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    private string VariantClass => $"btn-{Variant}";
+    private string? SizeClass => Small ? "btn-sm" : null;
+}

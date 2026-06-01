@@ -1,0 +1,58 @@
+<div class="card">
+    @if (!string.IsNullOrEmpty(Title) || HeaderActions is not null)
+    {
+        <div class="card-header">
+            <div>
+                @if (!string.IsNullOrEmpty(Title)) { <h3 class="card-title">@Title</h3> }
+                @if (!string.IsNullOrEmpty(Subtitle)) { <p class="card-subtitle">@Subtitle</p> }
+            </div>
+            @if (HeaderActions is not null) { <div>@HeaderActions</div> }
+        </div>
+    }
+
+    @if (Loading)
+    {
+        <AppLoader Variant="table" Rows="6" />
+    }
+    else if (!string.IsNullOrEmpty(Error))
+    {
+        <div class="state-error">
+            <div class="empty-icon"><Icon Name="alert" /></div>
+            <p class="empty-title">Something went wrong</p>
+            <p class="empty-text">@Error</p>
+        </div>
+    }
+    else if (IsEmpty)
+    {
+        <div class="empty-state">
+            <div class="empty-icon"><Icon Name="@EmptyIcon" /></div>
+            <p class="empty-title">@EmptyTitle</p>
+            <p class="empty-text">@EmptyText</p>
+            @if (EmptyAction is not null) { <div style="margin-top:6px">@EmptyAction</div> }
+        </div>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr>@Head</tr></thead>
+                <tbody>@ChildContent</tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public bool Loading { get; set; }
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public bool IsEmpty { get; set; }
+    [Parameter] public string EmptyIcon { get; set; } = "inbox";
+    [Parameter] public string EmptyTitle { get; set; } = "Nothing here yet";
+    [Parameter] public string EmptyText { get; set; } = "There are no records to display.";
+    [Parameter] public RenderFragment? Head { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? HeaderActions { get; set; }
+    [Parameter] public RenderFragment? EmptyAction { get; set; }
+}

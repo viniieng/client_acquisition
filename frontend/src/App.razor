@@ -7,7 +7,12 @@
     </Found>
     <NotFound>
         <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Página não encontrada.</p>
+            <div class="empty-state">
+                <div class="empty-icon"><Icon Name="search" /></div>
+                <p class="empty-title">Page not found</p>
+                <p class="empty-text">The page you are looking for doesn't exist.</p>
+                <a class="btn btn-primary" href="">Go to dashboard</a>
+            </div>
         </LayoutView>
     </NotFound>
 </Router>

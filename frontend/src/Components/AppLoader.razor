@@ -1,0 +1,38 @@
+@if (Variant == "table")
+{
+    <div class="skel-table">
+        @for (var i = 0; i < Rows; i++)
+        {
+            <div class="skeleton skel-row" style="width:@(RowWidth(i))"></div>
+        }
+    </div>
+}
+else if (Variant == "cards")
+{
+    <div class="metric-grid">
+        @for (var i = 0; i < Rows; i++)
+        {
+            <div class="skeleton skel-card"></div>
+        }
+    </div>
+}
+else
+{
+    <div class="loader-block">
+        <div class="spinner"></div>
+        @if (!string.IsNullOrEmpty(Text)) { <p class="muted">@Text</p> }
+    </div>
+}
+
+@code {
+    [Parameter] public string Variant { get; set; } = "spinner";
+    [Parameter] public int Rows { get; set; } = 5;
+    [Parameter] public string? Text { get; set; }
+
+    private static string RowWidth(int index) => (index % 3) switch
+    {
+        0 => "92%",
+        1 => "78%",
+        _ => "85%"
+    };
+}
