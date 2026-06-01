@@ -1,0 +1,19 @@
+<div class="metric-card">
+    <div class="metric-top">
+        <span class="metric-label">@Label</span>
+        <span class="metric-icon @Tone"><Icon Name="@Icon" /></span>
+    </div>
+    <div class="metric-value">@Value</div>
+    @if (!string.IsNullOrEmpty(Foot))
+    {
+        <div class="metric-foot">@Foot</div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public string Icon { get; set; } = "info";
+    [Parameter] public string Tone { get; set; } = string.Empty;
+    [Parameter] public string? Foot { get; set; }
+}

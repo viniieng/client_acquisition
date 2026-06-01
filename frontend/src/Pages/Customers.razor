@@ -1,53 +1,356 @@
 @page "/customers"
 @inject ApiClient Api
+@inject ToastService Toasts
 
 <div class="page-header">
     <div>
-        <p class="eyebrow">Clientes</p>
-        <h1>Lista de clientes</h1>
+        <h1 class="page-title">Customers</h1>
+        <p class="page-subtitle">Manage your client base.</p>
+    </div>
+    <div class="page-actions">
+        <AppButton Variant="primary" Icon="plus" OnClick="OpenCreate">New Customer</AppButton>
     </div>
 </div>
 
-@if (isLoading)
-{
-    <p>Carregando clientes...</p>
-}
-else if (!string.IsNullOrWhiteSpace(errorMessage))
-{
-    <div class="error-box">@errorMessage</div>
-}
-else
-{
-    <div class="card-grid">
-        @foreach (var customer in customers)
-        {
-            <article class="card">
-                <h3>@customer.FullName</h3>
-                <p>@customer.Email</p>
-                <small>@customer.Cpf</small>
-            </article>
-        }
+<div class="toolbar">
+    <div class="field search" style="min-width:280px">
+        <Icon Name="search" />
+        <input class="input" placeholder="Search customer by name" value="@_search" @oninput="OnSearch" />
     </div>
-}
+    <div class="spacer"></div>
+    <span class="muted">@Filtered.Count of @_customers.Count customers</span>
+</div>
+
+<AppTable Loading="_loading" Error="@_error"
+          IsEmpty="!Filtered.Any()" EmptyIcon="users"
+          EmptyTitle="@(string.IsNullOrWhiteSpace(_search) ? "No customers yet" : "No matches")"
+          EmptyText="@(string.IsNullOrWhiteSpace(_search) ? "Add your first customer to get started." : "Try a different search term.")">
+    <Head>
+        <th>Name</th><th>Email</th><th>CPF</th><th>Birth Date</th><th>Address</th><th>Created At</th><th class="text-right">Actions</th>
+    </Head>
+    <ChildContent>
+        @foreach (var customer in Filtered)
+        {
+            <tr>
+                <td>
+                    <div class="row-main">
+                        <span class="row-avatar">@Format.Initials(customer.FullName)</span>
+                        <span class="cell-strong">@customer.FullName</span>
+                    </div>
+                </td>
+                <td class="cell-muted">@customer.Email</td>
+                <td class="cell-mono">@Cpf.Mask(customer.Cpf)</td>
+                <td class="cell-muted">@Format.Date(customer.BirthDate)</td>
+                <td class="cell-muted">@customer.Address</td>
+                <td class="cell-muted">@Format.Date(customer.CreatedAt)</td>
+                <td>
+                    <div class="table-actions">
+                        <button class="icon-btn" title="View" @onclick="() => OpenView(customer)"><Icon Name="eye" /></button>
+                        <button class="icon-btn" title="Edit" @onclick="() => OpenEdit(customer)"><Icon Name="edit" /></button>
+                        <button class="icon-btn danger" title="Delete" @onclick="() => OpenDelete(customer)"><Icon Name="trash" /></button>
+                    </div>
+                </td>
+            </tr>
+        }
+    </ChildContent>
+</AppTable>
+
+@* ----------------------------------------------------------- view modal *@
+<AppModal Visible="_viewing is not null" Title="Customer details" OnClose="() => _viewing = null">
+    <ChildContent>
+    @if (_viewing is not null)
+    {
+        <div class="detail-grid">
+            <div class="detail-item"><span class="detail-label">Full name</span><span class="detail-value">@_viewing.FullName</span></div>
+            <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">@_viewing.Email</span></div>
+            <div class="detail-item"><span class="detail-label">CPF</span><span class="detail-value">@Cpf.Mask(_viewing.Cpf)</span></div>
+            <div class="detail-item"><span class="detail-label">Birth date</span><span class="detail-value">@Format.Date(_viewing.BirthDate)</span></div>
+            <div class="detail-item"><span class="detail-label">Address</span><span class="detail-value">@_viewing.Address</span></div>
+            <div class="detail-item"><span class="detail-label">Created at</span><span class="detail-value">@Format.DateTimeShort(_viewing.CreatedAt)</span></div>
+        </div>
+    }
+    </ChildContent>
+    <Footer>
+        <AppButton Variant="secondary" OnClick="() => _viewing = null">Close</AppButton>
+        <AppButton Variant="primary" Icon="edit" OnClick="EditFromView">Edit</AppButton>
+    </Footer>
+</AppModal>
+
+@* ------------------------------------------------------- create / edit modal *@
+<AppModal Visible="_editorOpen" Large="false"
+          Title="@(_isEdit ? "Edit customer" : "New customer")"
+          Subtitle="@(_isEdit ? "Update the customer information." : "Fill in the details to register a new client.")"
+          OnClose="CloseEditor">
+    <ChildContent>
+    <div class="form-grid">
+        <div class="col-span-2">
+            <AppInput Label="Full Name" Required="true" @bind-Value="_form.FullName"
+                      Placeholder="e.g. Maria Silva" Error="@Err("fullName")" />
+        </div>
+        <AppInput Label="Email" Required="true" Type="email" @bind-Value="_form.Email"
+                  Placeholder="name@example.com" Error="@Err("email")" />
+        <AppInput Label="CPF" Required="true" Value="_cpfText" ValueChanged="OnCpfChanged"
+                  Placeholder="000.000.000-00" Error="@Err("cpf")"
+                  Hint="@_cpfHint" HintOk="_cpfOk" />
+        <div class="field">
+            <label class="field-label">Birth Date <span class="req">*</span></label>
+            <input class="input @(Err("birthDate") is not null ? "invalid" : null)" type="date"
+                   value="@_birthText" @oninput="OnBirthChanged" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+            @if (Err("birthDate") is not null)
+            {
+                <span class="field-error"><Icon Name="alert" Class="toast-icon" />@Err("birthDate")</span>
+            }
+            else if (_ageHint is not null)
+            {
+                <span class="field-hint @(_ageOk ? "ok" : null)">@_ageHint</span>
+            }
+        </div>
+        <div class="col-span-2">
+            <AppInput Label="Address" Required="true" @bind-Value="_form.Address"
+                      Placeholder="Street, number, city" Error="@Err("address")" />
+        </div>
+    </div>
+    </ChildContent>
+    <Footer>
+        <AppButton Variant="secondary" OnClick="CloseEditor" Disabled="_saving">Cancel</AppButton>
+        <AppButton Variant="primary" Icon="check" Loading="_saving" OnClick="Save">
+            @(_isEdit ? "Save changes" : "Create customer")
+        </AppButton>
+    </Footer>
+</AppModal>
+
+@* ----------------------------------------------------------- delete confirm *@
+<ConfirmDialog Visible="_deleting is not null"
+               Title="Delete customer"
+               Message="@($"Are you sure you want to delete \"{_deleting?.FullName}\"? This action cannot be undone.")"
+               Busy="_deleteBusy"
+               OnConfirm="ConfirmDelete"
+               OnCancel="() => _deleting = null" />
 
 @code {
-    private bool isLoading = true;
-    private string? errorMessage;
-    private List<CustomerResponseDto> customers = new();
+    private bool _loading = true;
+    private string? _error;
+    private string _search = string.Empty;
+    private List<CustomerResponseDto> _customers = new();
 
-    protected override async Task OnInitializedAsync()
+    private CustomerResponseDto? _viewing;
+    private CustomerResponseDto? _deleting;
+    private bool _deleteBusy;
+
+    private bool _editorOpen;
+    private bool _isEdit;
+    private bool _saving;
+    private Guid? _editId;
+    private CustomerForm _form = new();
+    private string _cpfText = string.Empty;
+    private string _birthText = string.Empty;
+    private readonly Dictionary<string, string> _errors = new();
+
+    private List<CustomerResponseDto> Filtered => string.IsNullOrWhiteSpace(_search)
+        ? _customers
+        : _customers.Where(c => c.FullName.Contains(_search, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    protected override Task OnInitializedAsync() => Load();
+
+    private async Task Load()
     {
+        _loading = true;
+        _error = null;
         try
         {
-            customers = await Api.GetCustomersAsync();
+            _customers = (await Api.GetCustomersAsync())
+                .OrderByDescending(c => c.CreatedAt).ToList();
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            errorMessage = exception.Message;
+            _error = ex.Message;
         }
         finally
         {
-            isLoading = false;
+            _loading = false;
+        }
+    }
+
+    private void OnSearch(ChangeEventArgs e) => _search = e.Value?.ToString() ?? string.Empty;
+
+    // ---- live CPF feedback
+    private bool _cpfOk;
+    private string? _cpfHint;
+    private bool _ageOk;
+    private string? _ageHint;
+
+    private string? Err(string key) => _errors.TryGetValue(key, out var v) ? v : null;
+
+    private void OpenCreate()
+    {
+        _isEdit = false;
+        _editId = null;
+        _form = new CustomerForm();
+        _cpfText = string.Empty;
+        _birthText = string.Empty;
+        _errors.Clear();
+        _cpfHint = _ageHint = null;
+        _editorOpen = true;
+    }
+
+    private void OpenEdit(CustomerResponseDto customer)
+    {
+        _isEdit = true;
+        _editId = customer.Id;
+        _form = CustomerForm.FromCustomer(customer);
+        _cpfText = Cpf.Mask(customer.Cpf);
+        _birthText = customer.BirthDate.ToString("yyyy-MM-dd");
+        _errors.Clear();
+        EvaluateCpf();
+        EvaluateAge();
+        _editorOpen = true;
+    }
+
+    private void EditFromView()
+    {
+        var customer = _viewing!;
+        _viewing = null;
+        OpenEdit(customer);
+    }
+
+    private void OpenView(CustomerResponseDto customer) => _viewing = customer;
+    private void OpenDelete(CustomerResponseDto customer) => _deleting = customer;
+    private void CloseEditor() => _editorOpen = false;
+
+    private void OnBirthChanged(ChangeEventArgs e)
+    {
+        _birthText = e.Value?.ToString() ?? string.Empty;
+        if (DateOnly.TryParse(_birthText, out var date))
+        {
+            _form.BirthDate = date;
+        }
+        else
+        {
+            _form.BirthDate = null;
+        }
+
+        _errors.Remove("birthDate");
+        EvaluateAge();
+    }
+
+    private void OnCpfChanged(string value)
+    {
+        _cpfText = value;
+        _errors.Remove("cpf");
+        EvaluateCpf();
+    }
+
+    private void EvaluateCpf()
+    {
+        var digits = Cpf.Digits(_cpfText);
+        if (digits.Length == 0) { _cpfHint = null; _cpfOk = false; return; }
+        _cpfOk = Cpf.IsValid(_cpfText);
+        _cpfHint = _cpfOk ? "Valid CPF" : "CPF will be validated on save";
+    }
+
+    private void EvaluateAge()
+    {
+        if (_form.BirthDate is null) { _ageHint = null; _ageOk = false; return; }
+        var age = AgeFrom(_form.BirthDate.Value);
+        _ageOk = age >= 18;
+        _ageHint = _ageOk ? $"{age} years old" : "Customer must be at least 18 years old";
+    }
+
+    private static int AgeFrom(DateOnly birth)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var age = today.Year - birth.Year;
+        if (birth > today.AddYears(-age)) age--;
+        return age;
+    }
+
+    private bool Validate()
+    {
+        _errors.Clear();
+        _form.Cpf = Cpf.Digits(_cpfText);
+
+        if (string.IsNullOrWhiteSpace(_form.FullName) || _form.FullName.Trim().Length < 3)
+            _errors["fullName"] = "Full name must have at least 3 characters.";
+
+        if (string.IsNullOrWhiteSpace(_form.Email) || !_form.Email.Contains('@') || !_form.Email.Contains('.'))
+            _errors["email"] = "Enter a valid email address.";
+
+        if (!Cpf.IsValid(_cpfText))
+            _errors["cpf"] = "Enter a valid CPF.";
+
+        if (_form.BirthDate is null)
+            _errors["birthDate"] = "Birth date is required.";
+        else if (AgeFrom(_form.BirthDate.Value) < 18)
+            _errors["birthDate"] = "Customer must be at least 18 years old.";
+
+        if (string.IsNullOrWhiteSpace(_form.Address))
+            _errors["address"] = "Address is required.";
+
+        return _errors.Count == 0;
+    }
+
+    private async Task Save()
+    {
+        EvaluateCpf();
+        if (!Validate())
+        {
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            if (_isEdit && _editId is not null)
+            {
+                await Api.UpdateCustomerAsync(_editId.Value, _form);
+                Toasts.ShowSuccess("Customer updated successfully.");
+            }
+            else
+            {
+                await Api.CreateCustomerAsync(_form);
+                Toasts.ShowSuccess("Customer created successfully.");
+            }
+
+            _editorOpen = false;
+            await Load();
+        }
+        catch (ApiException ex)
+        {
+            // surface server-side rule errors (e.g. duplicate CPF) inline + toast
+            if (ex.Message.Contains("CPF", StringComparison.OrdinalIgnoreCase))
+            {
+                _errors["cpf"] = ex.Message;
+            }
+            Toasts.ShowError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Toasts.ShowError(ex.Message);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (_deleting is null) return;
+        _deleteBusy = true;
+        try
+        {
+            await Api.DeleteCustomerAsync(_deleting.Id);
+            Toasts.ShowSuccess("Customer deleted.");
+            _deleting = null;
+            await Load();
+        }
+        catch (Exception ex)
+        {
+            Toasts.ShowError(ex.Message);
+        }
+        finally
+        {
+            _deleteBusy = false;
         }
     }
 }

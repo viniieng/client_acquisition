@@ -1,53 +1,327 @@
 @page "/orders"
 @inject ApiClient Api
+@inject ToastService Toasts
+@inject NavigationManager Nav
 
 <div class="page-header">
     <div>
-        <p class="eyebrow">Pedidos</p>
-        <h1>Lista de pedidos</h1>
+        <h1 class="page-title">Orders</h1>
+        <p class="page-subtitle">Track and manage customer orders.</p>
+    </div>
+    <div class="page-actions">
+        <AppButton Variant="primary" Icon="plus" OnClick="OpenCreate">New Order</AppButton>
     </div>
 </div>
 
-@if (isLoading)
-{
-    <p>Carregando pedidos...</p>
-}
-else if (!string.IsNullOrWhiteSpace(errorMessage))
-{
-    <div class="error-box">@errorMessage</div>
-}
-else
-{
-    <div class="card-grid">
-        @foreach (var order in orders)
-        {
-            <article class="card">
-                <h3>@order.CustomerFullName</h3>
-                <p>@order.OrderDate.ToString("yyyy-MM-dd HH:mm")</p>
-                <strong>@order.TotalAmount.ToString("C")</strong>
-            </article>
-        }
+<div class="toolbar">
+    <div class="field search" style="min-width:240px">
+        <Icon Name="search" />
+        <input class="input" placeholder="Filter by customer name" value="@_fName" @oninput="e => _fName = e.Value?.ToString() ?? string.Empty" />
     </div>
-}
+    <div class="field">
+        <label class="field-label">Start Date</label>
+        <input class="input" type="date" value="@_fStart" @oninput="e => _fStart = e.Value?.ToString() ?? string.Empty" />
+    </div>
+    <div class="field">
+        <label class="field-label">End Date</label>
+        <input class="input" type="date" value="@_fEnd" @oninput="e => _fEnd = e.Value?.ToString() ?? string.Empty" />
+    </div>
+    <div class="spacer"></div>
+    @if (HasFilters)
+    {
+        <AppButton Variant="ghost" OnClick="ClearFilters">Clear</AppButton>
+    }
+    <span class="muted">@Filtered.Count of @_orders.Count orders</span>
+</div>
+
+<AppTable Loading="_loading" Error="@_error"
+          IsEmpty="!Filtered.Any()" EmptyIcon="cart"
+          EmptyTitle="@(HasFilters ? "No matching orders" : "No orders yet")"
+          EmptyText="@(HasFilters ? "Adjust your filters to see more results." : "Create your first order to get started.")">
+    <Head>
+        <th>Order Number</th><th>Customer</th><th>Order Date</th><th class="text-right">Total Amount</th><th>Status</th><th class="text-right">Actions</th>
+    </Head>
+    <ChildContent>
+        @foreach (var order in Filtered)
+        {
+            <tr>
+                <td class="cell-strong cell-mono">@Format.ShortId(order.Id)</td>
+                <td>
+                    <div class="row-main">
+                        <span class="row-avatar">@Format.Initials(order.CustomerFullName)</span>
+                        <span>@order.CustomerFullName</span>
+                    </div>
+                </td>
+                <td class="cell-muted">@Format.DateTimeShort(order.OrderDate)</td>
+                <td class="text-right cell-strong cell-mono">@Format.Currency(order.TotalAmount)</td>
+                <td>
+                    @if (IsLocked(order))
+                    {
+                        <AppBadge Variant="neutral">Locked</AppBadge>
+                    }
+                    else
+                    {
+                        <AppBadge Variant="success">Editable</AppBadge>
+                    }
+                </td>
+                <td>
+                    <div class="table-actions">
+                        <button class="icon-btn" title="View details" @onclick="() => View(order)"><Icon Name="eye" /></button>
+                        <button class="icon-btn danger" title="Delete" @onclick="() => OpenDelete(order)"><Icon Name="trash" /></button>
+                    </div>
+                </td>
+            </tr>
+        }
+    </ChildContent>
+</AppTable>
+
+@* ----------------------------------------------------------- create order *@
+<AppModal Visible="_createOpen" Large="true" Title="Create order"
+          Subtitle="Select a customer and add the order items." OnClose="CloseCreate">
+    <ChildContent>
+        <div class="form-grid">
+            <div class="field">
+                <label class="field-label">Customer <span class="req">*</span></label>
+                <select class="input @(_itemError is not null && _form.CustomerId is null ? "invalid" : null)"
+                        value="@(_form.CustomerId?.ToString() ?? string.Empty)" @onchange="OnCustomerChanged">
+                    <option value="">Select a customer…</option>
+                    @foreach (var c in _customers)
+                    {
+                        <option value="@c.Id">@c.FullName</option>
+                    }
+                </select>
+            </div>
+            <div class="field">
+                <label class="field-label">Order Date</label>
+                <input class="input" type="date" value="@_orderDateText" @oninput="OnOrderDateChanged" />
+            </div>
+        </div>
+
+        <div class="section-title" style="margin-top:18px">Items</div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr><th style="width:42%">Product</th><th>Quantity</th><th>Unit Price</th><th class="text-right">Subtotal</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @for (var i = 0; i < _form.Items.Count; i++)
+                    {
+                        var index = i;
+                        var item = _form.Items[index];
+                        <tr>
+                            <td>
+                                <input class="input" placeholder="Product name" @bind="item.ProductName" @bind:event="oninput" />
+                            </td>
+                            <td>
+                                <input class="input" type="number" min="1" style="max-width:110px"
+                                       @bind="item.Quantity" @bind:event="oninput" />
+                            </td>
+                            <td>
+                                <input class="input" type="number" min="0" step="0.01" style="max-width:140px"
+                                       @bind="item.UnitPrice" @bind:event="oninput" />
+                            </td>
+                            <td class="text-right cell-strong cell-mono">@Format.Currency(item.Subtotal)</td>
+                            <td>
+                                <button class="icon-btn danger" title="Remove item"
+                                        disabled="@(_form.Items.Count == 1)" @onclick="() => RemoveItem(index)">
+                                    <Icon Name="trash" />
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top:12px">
+            <AppButton Variant="secondary" Small="true" Icon="plus" OnClick="AddItem">Add Item</AppButton>
+        </div>
+
+        @if (_itemError is not null)
+        {
+            <div class="field-error" style="margin-top:12px"><Icon Name="alert" Class="toast-icon" />@_itemError</div>
+        }
+
+        <div class="totals-row">
+            <span class="label">Total Amount</span>
+            <span class="value cell-mono">@Format.Currency(_form.Total)</span>
+        </div>
+    </ChildContent>
+    <Footer>
+        <AppButton Variant="secondary" OnClick="CloseCreate" Disabled="_saving">Cancel</AppButton>
+        <AppButton Variant="primary" Icon="check" Loading="_saving" OnClick="Save">Create order</AppButton>
+    </Footer>
+</AppModal>
+
+<ConfirmDialog Visible="_deleting is not null"
+               Title="Delete order"
+               Message="@($"Delete order {Format.ShortId(_deleting?.Id ?? Guid.Empty)}? This action cannot be undone.")"
+               Busy="_deleteBusy"
+               OnConfirm="ConfirmDelete"
+               OnCancel="() => _deleting = null" />
 
 @code {
-    private bool isLoading = true;
-    private string? errorMessage;
-    private List<OrderResponseDto> orders = new();
+    [SupplyParameterFromQuery(Name = "new")] public string? NewFlag { get; set; }
+
+    private bool _loading = true;
+    private string? _error;
+    private List<OrderResponseDto> _orders = new();
+    private List<CustomerResponseDto> _customers = new();
+
+    private string _fName = string.Empty;
+    private string _fStart = string.Empty;
+    private string _fEnd = string.Empty;
+
+    private bool _createOpen;
+    private bool _saving;
+    private OrderForm _form = new();
+    private string _orderDateText = DateTime.Today.ToString("yyyy-MM-dd");
+    private string? _itemError;
+
+    private OrderResponseDto? _deleting;
+    private bool _deleteBusy;
+
+    private bool HasFilters => !string.IsNullOrWhiteSpace(_fName) || !string.IsNullOrWhiteSpace(_fStart) || !string.IsNullOrWhiteSpace(_fEnd);
+
+    private List<OrderResponseDto> Filtered
+    {
+        get
+        {
+            IEnumerable<OrderResponseDto> q = _orders;
+            if (!string.IsNullOrWhiteSpace(_fName))
+                q = q.Where(o => o.CustomerFullName.Contains(_fName, StringComparison.OrdinalIgnoreCase));
+            if (DateOnly.TryParse(_fStart, out var start))
+                q = q.Where(o => DateOnly.FromDateTime(o.OrderDate.ToLocalTime()) >= start);
+            if (DateOnly.TryParse(_fEnd, out var end))
+                q = q.Where(o => DateOnly.FromDateTime(o.OrderDate.ToLocalTime()) <= end);
+            return q.ToList();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
+        await Load();
+        if (!string.IsNullOrEmpty(NewFlag))
+        {
+            OpenCreate();
+        }
+    }
+
+    private async Task Load()
+    {
+        _loading = true;
+        _error = null;
         try
         {
-            orders = await Api.GetOrdersAsync();
+            var ordersTask = Api.GetOrdersAsync();
+            var customersTask = Api.GetCustomersAsync();
+            await Task.WhenAll(ordersTask, customersTask);
+            _orders = ordersTask.Result.OrderByDescending(o => o.OrderDate).ToList();
+            _customers = customersTask.Result.OrderBy(c => c.FullName).ToList();
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            errorMessage = exception.Message;
+            _error = ex.Message;
         }
         finally
         {
-            isLoading = false;
+            _loading = false;
+        }
+    }
+
+    private static bool IsLocked(OrderResponseDto order) => DateTime.UtcNow - order.CreatedAt > TimeSpan.FromHours(24);
+
+    private void View(OrderResponseDto order) => Nav.NavigateTo($"orders/{order.Id}");
+    private void ClearFilters() { _fName = _fStart = _fEnd = string.Empty; }
+
+    private void OpenCreate()
+    {
+        _form = new OrderForm();
+        _orderDateText = DateTime.Today.ToString("yyyy-MM-dd");
+        _itemError = null;
+        _createOpen = true;
+    }
+
+    private void CloseCreate() => _createOpen = false;
+
+    private void OnCustomerChanged(ChangeEventArgs e)
+    {
+        _form.CustomerId = Guid.TryParse(e.Value?.ToString(), out var id) ? id : null;
+    }
+
+    private void OnOrderDateChanged(ChangeEventArgs e)
+    {
+        _orderDateText = e.Value?.ToString() ?? string.Empty;
+        if (DateOnly.TryParse(_orderDateText, out var date))
+        {
+            _form.OrderDate = new DateTime(date.Year, date.Month, date.Day, 12, 0, 0, DateTimeKind.Utc);
+        }
+    }
+
+    private void AddItem() => _form.Items.Add(new OrderItemForm());
+
+    private void RemoveItem(int index)
+    {
+        if (_form.Items.Count > 1)
+        {
+            _form.Items.RemoveAt(index);
+        }
+    }
+
+    private async Task Save()
+    {
+        _itemError = null;
+
+        if (_form.CustomerId is null)
+        {
+            _itemError = "Please select a customer.";
+            return;
+        }
+
+        if (_form.Items.Count == 0 || _form.Items.Any(i => string.IsNullOrWhiteSpace(i.ProductName) || i.Quantity < 1 || i.UnitPrice <= 0))
+        {
+            _itemError = "Each item needs a product name, quantity ≥ 1 and unit price > 0.";
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            await Api.CreateOrderAsync(_form);
+            Toasts.ShowSuccess("Order created successfully.");
+            _createOpen = false;
+            await Load();
+        }
+        catch (Exception ex)
+        {
+            Toasts.ShowError(ex.Message);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private void OpenDelete(OrderResponseDto order) => _deleting = order;
+
+    private async Task ConfirmDelete()
+    {
+        if (_deleting is null) return;
+        _deleteBusy = true;
+        try
+        {
+            await Api.DeleteOrderAsync(_deleting.Id);
+            Toasts.ShowSuccess("Order deleted.");
+            _deleting = null;
+            await Load();
+        }
+        catch (Exception ex)
+        {
+            Toasts.ShowError(ex.Message);
+        }
+        finally
+        {
+            _deleteBusy = false;
         }
     }
 }

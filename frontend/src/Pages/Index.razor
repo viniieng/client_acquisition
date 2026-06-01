@@ -1,9 +1,146 @@
 @page "/"
+@inject ApiClient Api
 
-<section class="hero">
+<div class="page-header">
     <div>
-        <p class="eyebrow">Gestão comercial</p>
-        <h1>Gestão de clientes e pedidos criada para o teste técnico.</h1>
-        <p class="lead">Frontend moderno em Blazor WebAssembly conectado à API ASP.NET Core.</p>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Overview of customers, orders and revenue.</p>
     </div>
-</section>
+    <div class="page-actions">
+        <AppButton Variant="secondary" Icon="users" OnClick="GoCustomers">Customers</AppButton>
+        <AppButton Variant="primary" Icon="plus" OnClick="GoNewOrder">New Order</AppButton>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <AppLoader Variant="cards" Rows="8" />
+}
+else if (_error is not null)
+{
+    <AppCard>
+        <div class="state-error">
+            <div class="empty-icon"><Icon Name="alert" /></div>
+            <p class="empty-title">Could not load dashboard</p>
+            <p class="empty-text">@_error</p>
+            <AppButton Variant="secondary" OnClick="Load">Try again</AppButton>
+        </div>
+    </AppCard>
+}
+else
+{
+    <div class="section-title">Customers</div>
+    <div class="metric-grid">
+        <Metric Label="Total Customers" Value="@_customers.Count.ToString()" Icon="users" Tone="" Foot="All registered clients" />
+        <Metric Label="New This Month" Value="@_newThisMonth.ToString()" Icon="user" Tone="green" Foot="@($"Since {DateTime.Now:MMM 1}")" />
+    </div>
+
+    <div class="section-title">Orders</div>
+    <div class="metric-grid">
+        <Metric Label="Total Orders" Value="@_orders.Count.ToString()" Icon="cart" Tone="blue" Foot="All time" />
+        <Metric Label="Revenue Generated" Value="@Format.Currency(_revenue)" Icon="dollar" Tone="green" Foot="Sum of all orders" />
+        <Metric Label="Average Order Value" Value="@Format.Currency(_avgOrder)" Icon="trending-up" Tone="" Foot="Revenue / orders" />
+    </div>
+
+    <div class="section-title">Business Metrics</div>
+    <div class="metric-grid">
+        <Metric Label="Total Revenue" Value="@Format.Currency(_revenue)" Icon="dollar" Tone="green" Foot="Lifetime" />
+        <Metric Label="Top Customer" Value="@_topCustomerName" Icon="award" Tone="amber" Foot="@_topCustomerFoot" />
+        <Metric Label="Orders Today" Value="@_ordersToday.ToString()" Icon="clock" Tone="blue" Foot="@DateTime.Now.ToString("dd MMM yyyy")" />
+    </div>
+
+    <div class="section-title">Recent orders</div>
+    <AppTable IsEmpty="!_orders.Any()" EmptyIcon="cart" EmptyTitle="No orders yet"
+              EmptyText="Create your first order to see it here.">
+        <Head>
+            <th>Order</th><th>Customer</th><th>Date</th><th class="text-right">Total</th><th>Status</th>
+        </Head>
+        <ChildContent>
+            @foreach (var order in _recentOrders)
+            {
+                <tr>
+                    <td class="cell-strong cell-mono">@Format.ShortId(order.Id)</td>
+                    <td>@order.CustomerFullName</td>
+                    <td class="cell-muted">@Format.DateTimeShort(order.OrderDate)</td>
+                    <td class="text-right cell-strong cell-mono">@Format.Currency(order.TotalAmount)</td>
+                    <td>
+                        @if (IsLocked(order))
+                        {
+                            <AppBadge Variant="neutral">Locked</AppBadge>
+                        }
+                        else
+                        {
+                            <AppBadge Variant="success">Editable</AppBadge>
+                        }
+                    </td>
+                </tr>
+            }
+        </ChildContent>
+    </AppTable>
+}
+
+@code {
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+
+    private bool _loading = true;
+    private string? _error;
+
+    private List<CustomerResponseDto> _customers = new();
+    private List<OrderResponseDto> _orders = new();
+    private List<CustomerSpendingDto> _spending = new();
+
+    private int _newThisMonth;
+    private int _ordersToday;
+    private decimal _revenue;
+    private decimal _avgOrder;
+    private string _topCustomerName = "—";
+    private string _topCustomerFoot = "No data yet";
+    private List<OrderResponseDto> _recentOrders = new();
+
+    protected override Task OnInitializedAsync() => Load();
+
+    private async Task Load()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            var customersTask = Api.GetCustomersAsync();
+            var ordersTask = Api.GetOrdersAsync();
+            var spendingTask = Api.GetCustomerSpendingAsync();
+            await Task.WhenAll(customersTask, ordersTask, spendingTask);
+
+            _customers = customersTask.Result;
+            _orders = ordersTask.Result;
+            _spending = spendingTask.Result;
+
+            var now = DateTime.UtcNow;
+            _newThisMonth = _customers.Count(c => c.CreatedAt.Year == now.Year && c.CreatedAt.Month == now.Month);
+            _ordersToday = _orders.Count(o => o.OrderDate.ToLocalTime().Date == DateTime.Now.Date);
+            _revenue = _orders.Sum(o => o.TotalAmount);
+            _avgOrder = _orders.Count > 0 ? _revenue / _orders.Count : 0m;
+
+            var top = _spending.OrderByDescending(s => s.TotalSpent).FirstOrDefault();
+            if (top is not null && top.TotalSpent > 0)
+            {
+                _topCustomerName = top.CustomerFullName;
+                _topCustomerFoot = $"{Format.Currency(top.TotalSpent)} · {top.OrderCount} orders";
+            }
+
+            _recentOrders = _orders.OrderByDescending(o => o.OrderDate).Take(6).ToList();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static bool IsLocked(OrderResponseDto order) => DateTime.UtcNow - order.CreatedAt > TimeSpan.FromHours(24);
+
+    private void GoCustomers() => Nav.NavigateTo("customers");
+    private void GoNewOrder() => Nav.NavigateTo("orders?new=1");
+}

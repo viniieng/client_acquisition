@@ -1,0 +1,39 @@
+@if (Visible)
+{
+    <div class="modal-backdrop" @onclick="OnBackdrop">
+        <div class="modal @(Large ? "modal-lg" : null)" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">@Title</h3>
+                    @if (!string.IsNullOrEmpty(Subtitle))
+                    {
+                        <p class="modal-subtitle">@Subtitle</p>
+                    }
+                </div>
+                <button class="modal-close" @onclick="Close" aria-label="Close"><Icon Name="x" Class="toast-icon" /></button>
+            </div>
+            <div class="modal-body">
+                @ChildContent
+            </div>
+            @if (Footer is not null)
+            {
+                <div class="modal-footer">
+                    @Footer
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public bool Large { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Footer { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private Task Close() => OnClose.InvokeAsync();
+    private Task OnBackdrop() => OnClose.InvokeAsync();
+}

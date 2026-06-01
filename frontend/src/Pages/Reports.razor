@@ -1,0 +1,102 @@
+@page "/reports"
+@inject ApiClient Api
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Reports</h1>
+        <p class="page-subtitle">Analytics on customer spending and revenue.</p>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <AppLoader Variant="cards" Rows="3" />
+}
+else if (_error is not null)
+{
+    <AppCard>
+        <div class="state-error">
+            <div class="empty-icon"><Icon Name="alert" /></div>
+            <p class="empty-title">Could not load reports</p>
+            <p class="empty-text">@_error</p>
+            <AppButton Variant="secondary" OnClick="Load">Try again</AppButton>
+        </div>
+    </AppCard>
+}
+else
+{
+    <div class="section-title">Revenue Metrics</div>
+    <div class="metric-grid">
+        <Metric Label="Total Revenue" Value="@Format.Currency(_totalRevenue)" Icon="dollar" Tone="green" Foot="All customers" />
+        <Metric Label="Average Ticket" Value="@Format.Currency(_averageTicket)" Icon="trending-up" Tone="" Foot="Revenue / orders" />
+        <Metric Label="Number of Orders" Value="@_totalOrders.ToString()" Icon="cart" Tone="blue" Foot="All time" />
+    </div>
+
+    <div class="section-title">Customer Spending</div>
+    <AppTable IsEmpty="!_spending.Any()" EmptyIcon="reports"
+              EmptyTitle="No spending data"
+              EmptyText="Once customers place orders, their spending appears here.">
+        <Head>
+            <th>Customer</th><th class="text-right">Orders Count</th><th class="text-right">Total Spent</th><th style="width:30%">Share</th>
+        </Head>
+        <ChildContent>
+            @foreach (var row in _spending)
+            {
+                <tr>
+                    <td>
+                        <div class="row-main">
+                            <span class="row-avatar">@Format.Initials(row.CustomerFullName)</span>
+                            <span class="cell-strong">@row.CustomerFullName</span>
+                        </div>
+                    </td>
+                    <td class="text-right cell-mono">@row.OrderCount</td>
+                    <td class="text-right cell-strong cell-mono">@Format.Currency(row.TotalSpent)</td>
+                    <td>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width:@(Share(row.TotalSpent))%"></div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </ChildContent>
+    </AppTable>
+}
+
+@code {
+    private bool _loading = true;
+    private string? _error;
+    private List<CustomerSpendingDto> _spending = new();
+
+    private decimal _totalRevenue;
+    private decimal _averageTicket;
+    private int _totalOrders;
+    private decimal _maxSpent;
+
+    protected override Task OnInitializedAsync() => Load();
+
+    private async Task Load()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            _spending = (await Api.GetCustomerSpendingAsync())
+                .OrderByDescending(s => s.TotalSpent).ToList();
+
+            _totalRevenue = _spending.Sum(s => s.TotalSpent);
+            _totalOrders = _spending.Sum(s => s.OrderCount);
+            _averageTicket = _totalOrders > 0 ? _totalRevenue / _totalOrders : 0m;
+            _maxSpent = _spending.Count > 0 ? _spending.Max(s => s.TotalSpent) : 0m;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private int Share(decimal value) => _maxSpent > 0 ? (int)Math.Round(value / _maxSpent * 100) : 0;
+}

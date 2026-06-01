@@ -1,0 +1,42 @@
+<div class="field @Class">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="field-label">@Label @if (Required) { <span class="req">*</span> }</label>
+    }
+    <input class="input @(HasError ? "invalid" : null)"
+           type="@Type"
+           value="@Value"
+           placeholder="@Placeholder"
+           disabled="@Disabled"
+           @oninput="HandleInput" />
+    @if (HasError)
+    {
+        <span class="field-error"><Icon Name="alert" Class="toast-icon" />@Error</span>
+    }
+    else if (!string.IsNullOrEmpty(Hint))
+    {
+        <span class="field-hint @(HintOk ? "ok" : null)">@Hint</span>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public string Type { get; set; } = "text";
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public string? Hint { get; set; }
+    [Parameter] public bool HintOk { get; set; }
+    [Parameter] public bool Required { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private bool HasError => !string.IsNullOrEmpty(Error);
+
+    private async Task HandleInput(ChangeEventArgs args)
+    {
+        Value = args.Value?.ToString() ?? string.Empty;
+        await ValueChanged.InvokeAsync(Value);
+    }
+}

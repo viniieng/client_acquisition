@@ -1,0 +1,277 @@
+@page "/orders/{Id:guid}"
+@inject ApiClient Api
+@inject ToastService Toasts
+@inject NavigationManager Nav
+
+<a class="back-link" href="orders"><Icon Name="chevron-left" /> Back to orders</a>
+
+@if (_loading)
+{
+    <AppLoader Text="Loading order…" />
+}
+else if (_error is not null || _order is null)
+{
+    <AppCard>
+        <div class="state-error">
+            <div class="empty-icon"><Icon Name="alert" /></div>
+            <p class="empty-title">Order not found</p>
+            <p class="empty-text">@(_error ?? "This order does not exist or was removed.")</p>
+            <AppButton Variant="secondary" OnClick="@(() => Nav.NavigateTo("orders"))">Back to orders</AppButton>
+        </div>
+    </AppCard>
+}
+else
+{
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Order @Format.ShortId(_order.Id)</h1>
+            <p class="page-subtitle">Placed on @Format.DateTimeShort(_order.OrderDate)</p>
+        </div>
+        <div class="page-actions">
+            @if (_locked)
+            {
+                <AppBadge Variant="neutral">Locked</AppBadge>
+            }
+            else
+            {
+                <AppBadge Variant="success">Editable</AppBadge>
+            }
+            <AppButton Variant="secondary" Icon="edit" Disabled="_locked" OnClick="OpenEdit">Edit</AppButton>
+            <AppButton Variant="danger" Icon="trash" OnClick="() => _confirmDelete = true">Delete</AppButton>
+        </div>
+    </div>
+
+    @if (_locked)
+    {
+        <div class="warning-banner">
+            <Icon Name="alert" />
+            This order can no longer be edited because more than 24 hours have passed since its creation.
+        </div>
+    }
+
+    <div class="stack">
+        <AppCard Title="Customer">
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Name</span><span class="detail-value">@_order.CustomerFullName</span></div>
+                @if (_customer is not null)
+                {
+                    <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">@_customer.Email</span></div>
+                    <div class="detail-item"><span class="detail-label">CPF</span><span class="detail-value">@Cpf.Mask(_customer.Cpf)</span></div>
+                    <div class="detail-item"><span class="detail-label">Address</span><span class="detail-value">@_customer.Address</span></div>
+                }
+            </div>
+        </AppCard>
+
+        <AppCard Title="Order summary">
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Order date</span><span class="detail-value">@Format.DateTimeShort(_order.OrderDate)</span></div>
+                <div class="detail-item"><span class="detail-label">Created at</span><span class="detail-value">@Format.DateTimeShort(_order.CreatedAt)</span></div>
+                <div class="detail-item"><span class="detail-label">Items</span><span class="detail-value">@_order.Items.Count</span></div>
+                <div class="detail-item"><span class="detail-label">Total amount</span><span class="detail-value">@Format.Currency(_order.TotalAmount)</span></div>
+            </div>
+        </AppCard>
+
+        <AppCard Title="Items" Flush="true">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th class="text-right">Subtotal</th></tr></thead>
+                    <tbody>
+                        @foreach (var item in _order.Items)
+                        {
+                            <tr>
+                                <td class="cell-strong">@item.ProductName</td>
+                                <td>@item.Quantity</td>
+                                <td class="cell-mono">@Format.Currency(item.UnitPrice)</td>
+                                <td class="text-right cell-strong cell-mono">@Format.Currency(item.Subtotal)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="totals-row" style="padding:16px">
+                <span class="label">Total Amount</span>
+                <span class="value cell-mono">@Format.Currency(_order.TotalAmount)</span>
+            </div>
+        </AppCard>
+    </div>
+}
+
+@* ----------------------------------------------------------- edit modal *@
+<AppModal Visible="_editOpen" Large="true" Title="Edit order"
+          Subtitle="Update the order items and date." OnClose="() => _editOpen = false">
+    <ChildContent>
+        <div class="form-grid">
+            <div class="field">
+                <label class="field-label">Customer</label>
+                <input class="input" value="@_order?.CustomerFullName" disabled />
+            </div>
+            <div class="field">
+                <label class="field-label">Order Date</label>
+                <input class="input" type="date" value="@_editDateText" @oninput="OnEditDateChanged" />
+            </div>
+        </div>
+
+        <div class="section-title" style="margin-top:18px">Items</div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr><th style="width:42%">Product</th><th>Quantity</th><th>Unit Price</th><th class="text-right">Subtotal</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @for (var i = 0; i < _editForm.Items.Count; i++)
+                    {
+                        var index = i;
+                        var item = _editForm.Items[index];
+                        <tr>
+                            <td><input class="input" placeholder="Product name" @bind="item.ProductName" @bind:event="oninput" /></td>
+                            <td><input class="input" type="number" min="1" style="max-width:110px" @bind="item.Quantity" @bind:event="oninput" /></td>
+                            <td><input class="input" type="number" min="0" step="0.01" style="max-width:140px" @bind="item.UnitPrice" @bind:event="oninput" /></td>
+                            <td class="text-right cell-strong cell-mono">@Format.Currency(item.Subtotal)</td>
+                            <td>
+                                <button class="icon-btn danger" title="Remove" disabled="@(_editForm.Items.Count == 1)" @onclick="() => _editForm.Items.RemoveAt(index)"><Icon Name="trash" /></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top:12px">
+            <AppButton Variant="secondary" Small="true" Icon="plus" OnClick="() => _editForm.Items.Add(new OrderItemForm())">Add Item</AppButton>
+        </div>
+        @if (_editError is not null)
+        {
+            <div class="field-error" style="margin-top:12px"><Icon Name="alert" Class="toast-icon" />@_editError</div>
+        }
+        <div class="totals-row">
+            <span class="label">Total Amount</span>
+            <span class="value cell-mono">@Format.Currency(_editForm.Total)</span>
+        </div>
+    </ChildContent>
+    <Footer>
+        <AppButton Variant="secondary" OnClick="() => _editOpen = false" Disabled="_saving">Cancel</AppButton>
+        <AppButton Variant="primary" Icon="check" Loading="_saving" OnClick="SaveEdit">Save changes</AppButton>
+    </Footer>
+</AppModal>
+
+<ConfirmDialog Visible="_confirmDelete"
+               Title="Delete order"
+               Message="Delete this order? This action cannot be undone."
+               Busy="_deleteBusy"
+               OnConfirm="ConfirmDelete"
+               OnCancel="() => _confirmDelete = false" />
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private bool _loading = true;
+    private string? _error;
+    private OrderResponseDto? _order;
+    private CustomerResponseDto? _customer;
+    private bool _locked;
+
+    private bool _editOpen;
+    private bool _saving;
+    private string? _editError;
+    private OrderForm _editForm = new();
+    private string _editDateText = string.Empty;
+
+    private bool _confirmDelete;
+    private bool _deleteBusy;
+
+    protected override async Task OnParametersSetAsync() => await Load();
+
+    private async Task Load()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            _order = await Api.GetOrderAsync(Id);
+            if (_order is not null)
+            {
+                _locked = DateTime.UtcNow - _order.CreatedAt > TimeSpan.FromHours(24);
+                _customer = await Api.GetCustomerAsync(_order.CustomerId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void OpenEdit()
+    {
+        if (_order is null) return;
+        _editForm = new OrderForm
+        {
+            CustomerId = _order.CustomerId,
+            OrderDate = _order.OrderDate,
+            Items = _order.Items.Select(i => new OrderItemForm
+            {
+                ProductName = i.ProductName,
+                Quantity = i.Quantity,
+                UnitPrice = i.UnitPrice
+            }).ToList()
+        };
+        _editDateText = _order.OrderDate.ToLocalTime().ToString("yyyy-MM-dd");
+        _editError = null;
+        _editOpen = true;
+    }
+
+    private void OnEditDateChanged(ChangeEventArgs e)
+    {
+        _editDateText = e.Value?.ToString() ?? string.Empty;
+        if (DateOnly.TryParse(_editDateText, out var date))
+        {
+            _editForm.OrderDate = new DateTime(date.Year, date.Month, date.Day, 12, 0, 0, DateTimeKind.Utc);
+        }
+    }
+
+    private async Task SaveEdit()
+    {
+        _editError = null;
+        if (_editForm.Items.Count == 0 || _editForm.Items.Any(i => string.IsNullOrWhiteSpace(i.ProductName) || i.Quantity < 1 || i.UnitPrice <= 0))
+        {
+            _editError = "Each item needs a product name, quantity ≥ 1 and unit price > 0.";
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            await Api.UpdateOrderAsync(Id, _editForm);
+            Toasts.ShowSuccess("Order updated successfully.");
+            _editOpen = false;
+            await Load();
+        }
+        catch (Exception ex)
+        {
+            Toasts.ShowError(ex.Message);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task ConfirmDelete()
+    {
+        _deleteBusy = true;
+        try
+        {
+            await Api.DeleteOrderAsync(Id);
+            Toasts.ShowSuccess("Order deleted.");
+            Nav.NavigateTo("orders");
+        }
+        catch (Exception ex)
+        {
+            Toasts.ShowError(ex.Message);
+            _deleteBusy = false;
+            _confirmDelete = false;
+        }
+    }
+}
