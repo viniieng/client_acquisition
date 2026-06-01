@@ -1,0 +1,53 @@
+@page "/orders"
+@inject ApiClient Api
+
+<div class="page-header">
+    <div>
+        <p class="eyebrow">Pedidos</p>
+        <h1>Lista de pedidos</h1>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <p>Carregando pedidos...</p>
+}
+else if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="error-box">@errorMessage</div>
+}
+else
+{
+    <div class="card-grid">
+        @foreach (var order in orders)
+        {
+            <article class="card">
+                <h3>@order.CustomerFullName</h3>
+                <p>@order.OrderDate.ToString("yyyy-MM-dd HH:mm")</p>
+                <strong>@order.TotalAmount.ToString("C")</strong>
+            </article>
+        }
+    </div>
+}
+
+@code {
+    private bool isLoading = true;
+    private string? errorMessage;
+    private List<OrderResponseDto> orders = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            orders = await Api.GetOrdersAsync();
+        }
+        catch (Exception exception)
+        {
+            errorMessage = exception.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

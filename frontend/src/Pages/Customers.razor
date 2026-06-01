@@ -1,0 +1,53 @@
+@page "/customers"
+@inject ApiClient Api
+
+<div class="page-header">
+    <div>
+        <p class="eyebrow">Clientes</p>
+        <h1>Lista de clientes</h1>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <p>Carregando clientes...</p>
+}
+else if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="error-box">@errorMessage</div>
+}
+else
+{
+    <div class="card-grid">
+        @foreach (var customer in customers)
+        {
+            <article class="card">
+                <h3>@customer.FullName</h3>
+                <p>@customer.Email</p>
+                <small>@customer.Cpf</small>
+            </article>
+        }
+    </div>
+}
+
+@code {
+    private bool isLoading = true;
+    private string? errorMessage;
+    private List<CustomerResponseDto> customers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            customers = await Api.GetCustomersAsync();
+        }
+        catch (Exception exception)
+        {
+            errorMessage = exception.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

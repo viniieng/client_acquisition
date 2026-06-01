@@ -1,0 +1,23 @@
+@inherits LayoutComponentBase
+
+<div class="shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="brand-mark">CA</span>
+            <div>
+                <strong>Client Acquisition</strong>
+                <p>Painel operacional</p>
+            </div>
+        </div>
+
+        <nav class="nav-links">
+            <NavLink href="" Match="NavLinkMatch.All">Início</NavLink>
+            <NavLink href="customers">Clientes</NavLink>
+            <NavLink href="orders">Pedidos</NavLink>
+        </nav>
+    </aside>
+
+    <main class="content">
+        @Body
+    </main>
+</div>

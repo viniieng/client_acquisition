@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+frontend/src/wwwroot/_framework/
+backend/src/API/appsettings.Development.json
+.env
