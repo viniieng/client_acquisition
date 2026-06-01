@@ -4,29 +4,29 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">Customers</h1>
-        <p class="page-subtitle">Manage your client base.</p>
+        <h1 class="page-title">Clientes</h1>
+        <p class="page-subtitle">Gerencie sua base de clientes.</p>
     </div>
     <div class="page-actions">
-        <AppButton Variant="primary" Icon="plus" OnClick="OpenCreate">New Customer</AppButton>
+        <AppButton Variant="primary" Icon="plus" OnClick="OpenCreate">Novo Cliente</AppButton>
     </div>
 </div>
 
 <div class="toolbar">
     <div class="field search" style="min-width:280px">
         <Icon Name="search" />
-        <input class="input" placeholder="Search customer by name" value="@_search" @oninput="OnSearch" />
+        <input class="input" placeholder="Buscar cliente por nome" value="@_search" @oninput="OnSearch" />
     </div>
     <div class="spacer"></div>
-    <span class="muted">@Filtered.Count of @_customers.Count customers</span>
+    <span class="muted">@Filtered.Count de @_customers.Count clientes</span>
 </div>
 
 <AppTable Loading="_loading" Error="@_error"
           IsEmpty="!Filtered.Any()" EmptyIcon="users"
-          EmptyTitle="@(string.IsNullOrWhiteSpace(_search) ? "No customers yet" : "No matches")"
-          EmptyText="@(string.IsNullOrWhiteSpace(_search) ? "Add your first customer to get started." : "Try a different search term.")">
+          EmptyTitle="@(string.IsNullOrWhiteSpace(_search) ? "Nenhum cliente ainda" : "Nenhum resultado")"
+          EmptyText="@(string.IsNullOrWhiteSpace(_search) ? "Adicione seu primeiro cliente para começar." : "Tente um termo de busca diferente.")">
     <Head>
-        <th>Name</th><th>Email</th><th>CPF</th><th>Birth Date</th><th>Address</th><th>Created At</th><th class="text-right">Actions</th>
+        <th>Nome</th><th>E-mail</th><th>CPF</th><th>Data de Nascimento</th><th>Endereço</th><th>Criado em</th><th class="text-right">Ações</th>
     </Head>
     <ChildContent>
         @foreach (var customer in Filtered)
@@ -45,9 +45,9 @@
                 <td class="cell-muted">@Format.Date(customer.CreatedAt)</td>
                 <td>
                     <div class="table-actions">
-                        <button class="icon-btn" title="View" @onclick="() => OpenView(customer)"><Icon Name="eye" /></button>
-                        <button class="icon-btn" title="Edit" @onclick="() => OpenEdit(customer)"><Icon Name="edit" /></button>
-                        <button class="icon-btn danger" title="Delete" @onclick="() => OpenDelete(customer)"><Icon Name="trash" /></button>
+                        <button class="icon-btn" title="Visualizar" @onclick="() => OpenView(customer)"><Icon Name="eye" /></button>
+                        <button class="icon-btn" title="Editar" @onclick="() => OpenEdit(customer)"><Icon Name="edit" /></button>
+                        <button class="icon-btn danger" title="Excluir" @onclick="() => OpenDelete(customer)"><Icon Name="trash" /></button>
                     </div>
                 </td>
             </tr>
@@ -56,44 +56,44 @@
 </AppTable>
 
 @* ----------------------------------------------------------- view modal *@
-<AppModal Visible="_viewing is not null" Title="Customer details" OnClose="() => _viewing = null">
+<AppModal Visible="_viewing is not null" Title="Detalhes do cliente" OnClose="() => _viewing = null">
     <ChildContent>
     @if (_viewing is not null)
     {
         <div class="detail-grid">
-            <div class="detail-item"><span class="detail-label">Full name</span><span class="detail-value">@_viewing.FullName</span></div>
-            <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">@_viewing.Email</span></div>
+            <div class="detail-item"><span class="detail-label">Nome completo</span><span class="detail-value">@_viewing.FullName</span></div>
+            <div class="detail-item"><span class="detail-label">E-mail</span><span class="detail-value">@_viewing.Email</span></div>
             <div class="detail-item"><span class="detail-label">CPF</span><span class="detail-value">@Cpf.Mask(_viewing.Cpf)</span></div>
-            <div class="detail-item"><span class="detail-label">Birth date</span><span class="detail-value">@Format.Date(_viewing.BirthDate)</span></div>
-            <div class="detail-item"><span class="detail-label">Address</span><span class="detail-value">@_viewing.Address</span></div>
-            <div class="detail-item"><span class="detail-label">Created at</span><span class="detail-value">@Format.DateTimeShort(_viewing.CreatedAt)</span></div>
+            <div class="detail-item"><span class="detail-label">Data de nascimento</span><span class="detail-value">@Format.Date(_viewing.BirthDate)</span></div>
+            <div class="detail-item"><span class="detail-label">Endereço</span><span class="detail-value">@_viewing.Address</span></div>
+            <div class="detail-item"><span class="detail-label">Criado em</span><span class="detail-value">@Format.DateTimeShort(_viewing.CreatedAt)</span></div>
         </div>
     }
     </ChildContent>
     <Footer>
-        <AppButton Variant="secondary" OnClick="() => _viewing = null">Close</AppButton>
-        <AppButton Variant="primary" Icon="edit" OnClick="EditFromView">Edit</AppButton>
+        <AppButton Variant="secondary" OnClick="() => _viewing = null">Fechar</AppButton>
+        <AppButton Variant="primary" Icon="edit" OnClick="EditFromView">Editar</AppButton>
     </Footer>
 </AppModal>
 
 @* ------------------------------------------------------- create / edit modal *@
 <AppModal Visible="_editorOpen" Large="false"
-          Title="@(_isEdit ? "Edit customer" : "New customer")"
-          Subtitle="@(_isEdit ? "Update the customer information." : "Fill in the details to register a new client.")"
+          Title="@(_isEdit ? "Editar cliente" : "Novo cliente")"
+          Subtitle="@(_isEdit ? "Atualize as informações do cliente." : "Preencha os dados para cadastrar um novo cliente.")"
           OnClose="CloseEditor">
     <ChildContent>
     <div class="form-grid">
         <div class="col-span-2">
-            <AppInput Label="Full Name" Required="true" @bind-Value="_form.FullName"
-                      Placeholder="e.g. Maria Silva" Error="@Err("fullName")" />
+            <AppInput Label="Nome Completo" Required="true" @bind-Value="_form.FullName"
+                      Placeholder="ex.: Maria Silva" Error="@Err("fullName")" />
         </div>
-        <AppInput Label="Email" Required="true" Type="email" @bind-Value="_form.Email"
-                  Placeholder="name@example.com" Error="@Err("email")" />
+        <AppInput Label="E-mail" Required="true" Type="email" @bind-Value="_form.Email"
+                  Placeholder="nome@exemplo.com" Error="@Err("email")" />
         <AppInput Label="CPF" Required="true" Value="_cpfText" ValueChanged="OnCpfChanged"
                   Placeholder="000.000.000-00" Error="@Err("cpf")"
                   Hint="@_cpfHint" HintOk="_cpfOk" />
         <div class="field">
-            <label class="field-label">Birth Date <span class="req">*</span></label>
+            <label class="field-label">Data de Nascimento <span class="req">*</span></label>
             <input class="input @(Err("birthDate") is not null ? "invalid" : null)" type="date"
                    value="@_birthText" @oninput="OnBirthChanged" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
             @if (Err("birthDate") is not null)
@@ -106,23 +106,24 @@
             }
         </div>
         <div class="col-span-2">
-            <AppInput Label="Address" Required="true" @bind-Value="_form.Address"
-                      Placeholder="Street, number, city" Error="@Err("address")" />
+            <AppInput Label="Endereço" Required="true" @bind-Value="_form.Address"
+                      Placeholder="Rua, número, cidade" Error="@Err("address")" />
         </div>
     </div>
     </ChildContent>
     <Footer>
-        <AppButton Variant="secondary" OnClick="CloseEditor" Disabled="_saving">Cancel</AppButton>
+        <AppButton Variant="secondary" OnClick="CloseEditor" Disabled="_saving">Cancelar</AppButton>
         <AppButton Variant="primary" Icon="check" Loading="_saving" OnClick="Save">
-            @(_isEdit ? "Save changes" : "Create customer")
+            @(_isEdit ? "Salvar alterações" : "Cadastrar cliente")
         </AppButton>
     </Footer>
 </AppModal>
 
 @* ----------------------------------------------------------- delete confirm *@
 <ConfirmDialog Visible="_deleting is not null"
-               Title="Delete customer"
-               Message="@($"Are you sure you want to delete \"{_deleting?.FullName}\"? This action cannot be undone.")"
+               Title="Excluir cliente"
+               ConfirmText="Excluir"
+               Message="@($"Tem certeza de que deseja excluir \"{_deleting?.FullName}\"? Esta ação não pode ser desfeita.")"
                Busy="_deleteBusy"
                OnConfirm="ConfirmDelete"
                OnCancel="() => _deleting = null" />
@@ -245,7 +246,7 @@
         var digits = Cpf.Digits(_cpfText);
         if (digits.Length == 0) { _cpfHint = null; _cpfOk = false; return; }
         _cpfOk = Cpf.IsValid(_cpfText);
-        _cpfHint = _cpfOk ? "Valid CPF" : "CPF will be validated on save";
+        _cpfHint = _cpfOk ? "CPF válido" : "O CPF será validado ao salvar";
     }
 
     private void EvaluateAge()
@@ -253,7 +254,7 @@
         if (_form.BirthDate is null) { _ageHint = null; _ageOk = false; return; }
         var age = AgeFrom(_form.BirthDate.Value);
         _ageOk = age >= 18;
-        _ageHint = _ageOk ? $"{age} years old" : "Customer must be at least 18 years old";
+        _ageHint = _ageOk ? $"{age} anos" : "O cliente deve ter pelo menos 18 anos";
     }
 
     private static int AgeFrom(DateOnly birth)
@@ -270,21 +271,21 @@
         _form.Cpf = Cpf.Digits(_cpfText);
 
         if (string.IsNullOrWhiteSpace(_form.FullName) || _form.FullName.Trim().Length < 3)
-            _errors["fullName"] = "Full name must have at least 3 characters.";
+            _errors["fullName"] = "O nome completo deve ter pelo menos 3 caracteres.";
 
         if (string.IsNullOrWhiteSpace(_form.Email) || !_form.Email.Contains('@') || !_form.Email.Contains('.'))
-            _errors["email"] = "Enter a valid email address.";
+            _errors["email"] = "Informe um e-mail válido.";
 
         if (!Cpf.IsValid(_cpfText))
-            _errors["cpf"] = "Enter a valid CPF.";
+            _errors["cpf"] = "Informe um CPF válido.";
 
         if (_form.BirthDate is null)
-            _errors["birthDate"] = "Birth date is required.";
+            _errors["birthDate"] = "A data de nascimento é obrigatória.";
         else if (AgeFrom(_form.BirthDate.Value) < 18)
-            _errors["birthDate"] = "Customer must be at least 18 years old.";
+            _errors["birthDate"] = "O cliente deve ter pelo menos 18 anos.";
 
         if (string.IsNullOrWhiteSpace(_form.Address))
-            _errors["address"] = "Address is required.";
+            _errors["address"] = "O endereço é obrigatório.";
 
         return _errors.Count == 0;
     }
@@ -303,12 +304,12 @@
             if (_isEdit && _editId is not null)
             {
                 await Api.UpdateCustomerAsync(_editId.Value, _form);
-                Toasts.ShowSuccess("Customer updated successfully.");
+                Toasts.ShowSuccess("Cliente atualizado com sucesso.");
             }
             else
             {
                 await Api.CreateCustomerAsync(_form);
-                Toasts.ShowSuccess("Customer created successfully.");
+                Toasts.ShowSuccess("Cliente cadastrado com sucesso.");
             }
 
             _editorOpen = false;
@@ -340,7 +341,7 @@
         try
         {
             await Api.DeleteCustomerAsync(_deleting.Id);
-            Toasts.ShowSuccess("Customer deleted.");
+            Toasts.ShowSuccess("Cliente excluído.");
             _deleting = null;
             await Load();
         }

@@ -3,16 +3,16 @@
         <p class="muted">@Message</p>
     </ChildContent>
     <Footer>
-        <AppButton Variant="secondary" OnClick="OnCancel" Disabled="Busy">Cancel</AppButton>
+        <AppButton Variant="secondary" OnClick="OnCancel" Disabled="Busy">Cancelar</AppButton>
         <AppButton Variant="danger" Icon="trash" Loading="Busy" OnClick="OnConfirm">@ConfirmText</AppButton>
     </Footer>
 </AppModal>
 
 @code {
     [Parameter] public bool Visible { get; set; }
-    [Parameter] public string Title { get; set; } = "Are you sure?";
-    [Parameter] public string Message { get; set; } = "This action cannot be undone.";
-    [Parameter] public string ConfirmText { get; set; } = "Delete";
+    [Parameter] public string Title { get; set; } = "Tem certeza?";
+    [Parameter] public string Message { get; set; } = "Esta ação não pode ser desfeita.";
+    [Parameter] public string ConfirmText { get; set; } = "Excluir";
     [Parameter] public bool Busy { get; set; }
     [Parameter] public EventCallback OnConfirm { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }

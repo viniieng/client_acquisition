@@ -5,41 +5,41 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">Orders</h1>
-        <p class="page-subtitle">Track and manage customer orders.</p>
+        <h1 class="page-title">Pedidos</h1>
+        <p class="page-subtitle">Acompanhe e gerencie os pedidos dos clientes.</p>
     </div>
     <div class="page-actions">
-        <AppButton Variant="primary" Icon="plus" OnClick="OpenCreate">New Order</AppButton>
+        <AppButton Variant="primary" Icon="plus" OnClick="OpenCreate">Novo Pedido</AppButton>
     </div>
 </div>
 
 <div class="toolbar">
     <div class="field search" style="min-width:240px">
         <Icon Name="search" />
-        <input class="input" placeholder="Filter by customer name" value="@_fName" @oninput="e => _fName = e.Value?.ToString() ?? string.Empty" />
+        <input class="input" placeholder="Filtrar por nome do cliente" value="@_fName" @oninput="e => _fName = e.Value?.ToString() ?? string.Empty" />
     </div>
     <div class="field">
-        <label class="field-label">Start Date</label>
+        <label class="field-label">Data Inicial</label>
         <input class="input" type="date" value="@_fStart" @oninput="e => _fStart = e.Value?.ToString() ?? string.Empty" />
     </div>
     <div class="field">
-        <label class="field-label">End Date</label>
+        <label class="field-label">Data Final</label>
         <input class="input" type="date" value="@_fEnd" @oninput="e => _fEnd = e.Value?.ToString() ?? string.Empty" />
     </div>
     <div class="spacer"></div>
     @if (HasFilters)
     {
-        <AppButton Variant="ghost" OnClick="ClearFilters">Clear</AppButton>
+        <AppButton Variant="ghost" OnClick="ClearFilters">Limpar</AppButton>
     }
-    <span class="muted">@Filtered.Count of @_orders.Count orders</span>
+    <span class="muted">@Filtered.Count de @_orders.Count pedidos</span>
 </div>
 
 <AppTable Loading="_loading" Error="@_error"
           IsEmpty="!Filtered.Any()" EmptyIcon="cart"
-          EmptyTitle="@(HasFilters ? "No matching orders" : "No orders yet")"
-          EmptyText="@(HasFilters ? "Adjust your filters to see more results." : "Create your first order to get started.")">
+          EmptyTitle="@(HasFilters ? "Nenhum pedido encontrado" : "Nenhum pedido ainda")"
+          EmptyText="@(HasFilters ? "Ajuste os filtros para ver mais resultados." : "Crie seu primeiro pedido para começar.")">
     <Head>
-        <th>Order Number</th><th>Customer</th><th>Order Date</th><th class="text-right">Total Amount</th><th>Status</th><th class="text-right">Actions</th>
+        <th>Número do Pedido</th><th>Cliente</th><th>Data do Pedido</th><th class="text-right">Valor Total</th><th>Status</th><th class="text-right">Ações</th>
     </Head>
     <ChildContent>
         @foreach (var order in Filtered)
@@ -57,17 +57,17 @@
                 <td>
                     @if (IsLocked(order))
                     {
-                        <AppBadge Variant="neutral">Locked</AppBadge>
+                        <AppBadge Variant="neutral">Bloqueado</AppBadge>
                     }
                     else
                     {
-                        <AppBadge Variant="success">Editable</AppBadge>
+                        <AppBadge Variant="success">Editável</AppBadge>
                     }
                 </td>
                 <td>
                     <div class="table-actions">
-                        <button class="icon-btn" title="View details" @onclick="() => View(order)"><Icon Name="eye" /></button>
-                        <button class="icon-btn danger" title="Delete" @onclick="() => OpenDelete(order)"><Icon Name="trash" /></button>
+                        <button class="icon-btn" title="Ver detalhes" @onclick="() => View(order)"><Icon Name="eye" /></button>
+                        <button class="icon-btn danger" title="Excluir" @onclick="() => OpenDelete(order)"><Icon Name="trash" /></button>
                     </div>
                 </td>
             </tr>
@@ -76,15 +76,15 @@
 </AppTable>
 
 @* ----------------------------------------------------------- create order *@
-<AppModal Visible="_createOpen" Large="true" Title="Create order"
-          Subtitle="Select a customer and add the order items." OnClose="CloseCreate">
+<AppModal Visible="_createOpen" Large="true" Title="Criar pedido"
+          Subtitle="Selecione um cliente e adicione os itens do pedido." OnClose="CloseCreate">
     <ChildContent>
         <div class="form-grid">
             <div class="field">
-                <label class="field-label">Customer <span class="req">*</span></label>
+                <label class="field-label">Cliente <span class="req">*</span></label>
                 <select class="input @(_itemError is not null && _form.CustomerId is null ? "invalid" : null)"
                         value="@(_form.CustomerId?.ToString() ?? string.Empty)" @onchange="OnCustomerChanged">
-                    <option value="">Select a customer…</option>
+                    <option value="">Selecione um cliente…</option>
                     @foreach (var c in _customers)
                     {
                         <option value="@c.Id">@c.FullName</option>
@@ -92,16 +92,16 @@
                 </select>
             </div>
             <div class="field">
-                <label class="field-label">Order Date</label>
+                <label class="field-label">Data do Pedido</label>
                 <input class="input" type="date" value="@_orderDateText" @oninput="OnOrderDateChanged" />
             </div>
         </div>
 
-        <div class="section-title" style="margin-top:18px">Items</div>
+        <div class="section-title" style="margin-top:18px">Itens</div>
         <div class="table-wrap">
             <table class="data-table">
                 <thead>
-                    <tr><th style="width:42%">Product</th><th>Quantity</th><th>Unit Price</th><th class="text-right">Subtotal</th><th></th></tr>
+                    <tr><th style="width:42%">Produto</th><th>Quantidade</th><th>Preço Unitário</th><th class="text-right">Subtotal</th><th></th></tr>
                 </thead>
                 <tbody>
                     @for (var i = 0; i < _form.Items.Count; i++)
@@ -110,7 +110,7 @@
                         var item = _form.Items[index];
                         <tr>
                             <td>
-                                <input class="input" placeholder="Product name" @bind="item.ProductName" @bind:event="oninput" />
+                                <input class="input" placeholder="Nome do produto" @bind="item.ProductName" @bind:event="oninput" />
                             </td>
                             <td>
                                 <input class="input" type="number" min="1" style="max-width:110px"
@@ -122,7 +122,7 @@
                             </td>
                             <td class="text-right cell-strong cell-mono">@Format.Currency(item.Subtotal)</td>
                             <td>
-                                <button class="icon-btn danger" title="Remove item"
+                                <button class="icon-btn danger" title="Remover item"
                                         disabled="@(_form.Items.Count == 1)" @onclick="() => RemoveItem(index)">
                                     <Icon Name="trash" />
                                 </button>
@@ -134,7 +134,7 @@
         </div>
 
         <div style="margin-top:12px">
-            <AppButton Variant="secondary" Small="true" Icon="plus" OnClick="AddItem">Add Item</AppButton>
+            <AppButton Variant="secondary" Small="true" Icon="plus" OnClick="AddItem">Adicionar Item</AppButton>
         </div>
 
         @if (_itemError is not null)
@@ -143,19 +143,20 @@
         }
 
         <div class="totals-row">
-            <span class="label">Total Amount</span>
+            <span class="label">Valor Total</span>
             <span class="value cell-mono">@Format.Currency(_form.Total)</span>
         </div>
     </ChildContent>
     <Footer>
-        <AppButton Variant="secondary" OnClick="CloseCreate" Disabled="_saving">Cancel</AppButton>
-        <AppButton Variant="primary" Icon="check" Loading="_saving" OnClick="Save">Create order</AppButton>
+        <AppButton Variant="secondary" OnClick="CloseCreate" Disabled="_saving">Cancelar</AppButton>
+        <AppButton Variant="primary" Icon="check" Loading="_saving" OnClick="Save">Criar pedido</AppButton>
     </Footer>
 </AppModal>
 
 <ConfirmDialog Visible="_deleting is not null"
-               Title="Delete order"
-               Message="@($"Delete order {Format.ShortId(_deleting?.Id ?? Guid.Empty)}? This action cannot be undone.")"
+               Title="Excluir pedido"
+               ConfirmText="Excluir"
+               Message="@($"Excluir o pedido {Format.ShortId(_deleting?.Id ?? Guid.Empty)}? Esta ação não pode ser desfeita.")"
                Busy="_deleteBusy"
                OnConfirm="ConfirmDelete"
                OnCancel="() => _deleting = null" />
@@ -274,13 +275,13 @@
 
         if (_form.CustomerId is null)
         {
-            _itemError = "Please select a customer.";
+            _itemError = "Selecione um cliente.";
             return;
         }
 
         if (_form.Items.Count == 0 || _form.Items.Any(i => string.IsNullOrWhiteSpace(i.ProductName) || i.Quantity < 1 || i.UnitPrice <= 0))
         {
-            _itemError = "Each item needs a product name, quantity ≥ 1 and unit price > 0.";
+            _itemError = "Cada item precisa de um nome de produto, quantidade ≥ 1 e preço unitário > 0.";
             return;
         }
 
@@ -288,7 +289,7 @@
         try
         {
             await Api.CreateOrderAsync(_form);
-            Toasts.ShowSuccess("Order created successfully.");
+            Toasts.ShowSuccess("Pedido criado com sucesso.");
             _createOpen = false;
             await Load();
         }
@@ -311,7 +312,7 @@
         try
         {
             await Api.DeleteOrderAsync(_deleting.Id);
-            Toasts.ShowSuccess("Order deleted.");
+            Toasts.ShowSuccess("Pedido excluído.");
             _deleting = null;
             await Load();
         }

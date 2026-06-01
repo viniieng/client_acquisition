@@ -18,7 +18,7 @@
     {
         <div class="state-error">
             <div class="empty-icon"><Icon Name="alert" /></div>
-            <p class="empty-title">Something went wrong</p>
+            <p class="empty-title">Algo deu errado</p>
             <p class="empty-text">@Error</p>
         </div>
     }
@@ -49,8 +49,8 @@
     [Parameter] public string? Error { get; set; }
     [Parameter] public bool IsEmpty { get; set; }
     [Parameter] public string EmptyIcon { get; set; } = "inbox";
-    [Parameter] public string EmptyTitle { get; set; } = "Nothing here yet";
-    [Parameter] public string EmptyText { get; set; } = "There are no records to display.";
+    [Parameter] public string EmptyTitle { get; set; } = "Nada por aqui ainda";
+    [Parameter] public string EmptyText { get; set; } = "Não há registros para exibir.";
     [Parameter] public RenderFragment? Head { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public RenderFragment? HeaderActions { get; set; }

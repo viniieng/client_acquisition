@@ -7,7 +7,7 @@
         <div class="toast toast-@toast.Level.ToString().ToLowerInvariant()" @key="toast.Id">
             <Icon Name="@IconFor(toast.Level)" Class="toast-icon" />
             <span class="toast-text">@toast.Text</span>
-            <button class="toast-close" @onclick="() => Toasts.Remove(toast)" aria-label="Dismiss">
+            <button class="toast-close" @onclick="() => Toasts.Remove(toast)" aria-label="Fechar">
                 <Icon Name="x" Class="toast-icon" />
             </button>
         </div>

@@ -4,22 +4,22 @@ namespace ClientAcquisition.Frontend.Models.Forms;
 
 public sealed class CustomerForm
 {
-    [Required(ErrorMessage = "Full name is required.")]
-    [StringLength(150, MinimumLength = 3, ErrorMessage = "Full name must be between 3 and 150 characters.")]
+    [Required(ErrorMessage = "O nome completo é obrigatório.")]
+    [StringLength(150, MinimumLength = 3, ErrorMessage = "O nome completo deve ter entre 3 e 150 caracteres.")]
     public string FullName { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Email is required.")]
-    [EmailAddress(ErrorMessage = "Enter a valid email address.")]
+    [Required(ErrorMessage = "O e-mail é obrigatório.")]
+    [EmailAddress(ErrorMessage = "Informe um e-mail válido.")]
     public string Email { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "CPF is required.")]
+    [Required(ErrorMessage = "O CPF é obrigatório.")]
     public string Cpf { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Birth date is required.")]
+    [Required(ErrorMessage = "A data de nascimento é obrigatória.")]
     public DateOnly? BirthDate { get; set; }
 
-    [Required(ErrorMessage = "Address is required.")]
-    [StringLength(250, ErrorMessage = "Address must be at most 250 characters.")]
+    [Required(ErrorMessage = "O endereço é obrigatório.")]
+    [StringLength(250, ErrorMessage = "O endereço deve ter no máximo 250 caracteres.")]
     public string Address { get; set; } = string.Empty;
 
     public static CustomerForm FromCustomer(CustomerResponseDto customer) => new()
