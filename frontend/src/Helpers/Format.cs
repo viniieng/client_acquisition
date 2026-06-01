@@ -12,13 +12,37 @@ public static class Format
         NumberGroupSeparator = "."
     };
 
+    private static readonly string[] MonthsPt =
+    {
+        "jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"
+    };
+
+    private static readonly string[] WeekdaysPt =
+    {
+        "dom", "seg", "ter", "qua", "qui", "sex", "sáb"
+    };
+
     public static string Currency(decimal value) => "R$ " + value.ToString("#,0.00", BrlFormat);
 
-    public static string Date(DateTime value) => value.ToLocalTime().ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+    public static string Date(DateTime value)
+    {
+        var local = value.ToLocalTime();
+        return $"{local.Day:00} {MonthsPt[local.Month - 1]} {local.Year}";
+    }
 
-    public static string DateTimeShort(DateTime value) => value.ToLocalTime().ToString("dd MMM yyyy, HH:mm", CultureInfo.InvariantCulture);
+    public static string DateTimeShort(DateTime value)
+    {
+        var local = value.ToLocalTime();
+        return $"{local.Day:00} {MonthsPt[local.Month - 1]} {local.Year}, {local:HH:mm}";
+    }
 
-    public static string Date(DateOnly value) => value.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+    public static string Date(DateOnly value) => $"{value.Day:00} {MonthsPt[value.Month - 1]} {value.Year}";
+
+    public static string WeekdayDate(DateTime value)
+    {
+        var local = value.ToLocalTime();
+        return $"{WeekdaysPt[(int)local.DayOfWeek]}, {local.Day:00} {MonthsPt[local.Month - 1]} {local.Year}";
+    }
 
     public static string Initials(string name)
     {

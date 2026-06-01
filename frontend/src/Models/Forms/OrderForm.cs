@@ -4,7 +4,7 @@ namespace ClientAcquisition.Frontend.Models.Forms;
 
 public sealed class OrderForm
 {
-    [Required(ErrorMessage = "Select a customer.")]
+    [Required(ErrorMessage = "Selecione um cliente.")]
     public Guid? CustomerId { get; set; }
 
     public DateTime OrderDate { get; set; } = DateTime.UtcNow;
@@ -28,13 +28,13 @@ public sealed class OrderForm
 
 public sealed class OrderItemForm
 {
-    [Required(ErrorMessage = "Product name is required.")]
+    [Required(ErrorMessage = "O nome do produto é obrigatório.")]
     public string ProductName { get; set; } = string.Empty;
 
-    [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1.")]
+    [Range(1, int.MaxValue, ErrorMessage = "A quantidade deve ser de pelo menos 1.")]
     public int Quantity { get; set; } = 1;
 
-    [Range(0.01, double.MaxValue, ErrorMessage = "Unit price must be greater than 0.")]
+    [Range(0.01, double.MaxValue, ErrorMessage = "O preço unitário deve ser maior que 0.")]
     public decimal UnitPrice { get; set; }
 
     public decimal Subtotal => Quantity * UnitPrice;

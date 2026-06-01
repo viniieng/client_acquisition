@@ -6,23 +6,23 @@
             <span class="brand-mark">CA</span>
             <div class="brand-text">
                 <strong>Client Acquisition</strong>
-                <span>CRM Platform</span>
+                <span>Plataforma CRM</span>
             </div>
         </div>
 
         <nav class="sidebar-nav">
             <span class="nav-section-label">Menu</span>
             <NavLink class="nav-item" href="" Match="NavLinkMatch.All" @onclick="CloseMenu">
-                <Icon Name="dashboard" Class="nav-icon" /> Dashboard
+                <Icon Name="dashboard" Class="nav-icon" /> Painel
             </NavLink>
             <NavLink class="nav-item" href="customers" @onclick="CloseMenu">
-                <Icon Name="users" Class="nav-icon" /> Customers
+                <Icon Name="users" Class="nav-icon" /> Clientes
             </NavLink>
             <NavLink class="nav-item" href="orders" @onclick="CloseMenu">
-                <Icon Name="cart" Class="nav-icon" /> Orders
+                <Icon Name="cart" Class="nav-icon" /> Pedidos
             </NavLink>
             <NavLink class="nav-item" href="reports" @onclick="CloseMenu">
-                <Icon Name="reports" Class="nav-icon" /> Reports
+                <Icon Name="reports" Class="nav-icon" /> Relatórios
             </NavLink>
         </nav>
 
@@ -36,7 +36,7 @@
     <div class="main-area">
         <header class="topbar">
             <div class="topbar-left">
-                <button class="menu-toggle" @onclick="ToggleMenu" aria-label="Toggle menu">
+                <button class="menu-toggle" @onclick="ToggleMenu" aria-label="Alternar menu">
                     <Icon Name="menu" Class="nav-icon" />
                 </button>
                 <span class="topbar-title">Client Acquisition</span>
@@ -44,12 +44,12 @@
             <div class="topbar-right">
                 <span class="topbar-date">
                     <Icon Name="calendar" Class="toast-icon" />
-                    @DateTime.Now.ToString("ddd, dd MMM yyyy")
+                    @Format.WeekdayDate(DateTime.Now)
                 </span>
                 <div class="topbar-user">
                     <div class="who">
                         <strong>Admin</strong>
-                        <span>Signed in</span>
+                        <span>Conectado</span>
                     </div>
                     <span class="avatar">AD</span>
                 </div>

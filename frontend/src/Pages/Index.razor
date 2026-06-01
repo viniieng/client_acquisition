@@ -3,12 +3,12 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle">Overview of customers, orders and revenue.</p>
+        <h1 class="page-title">Painel</h1>
+        <p class="page-subtitle">Visão geral de clientes, pedidos e receita.</p>
     </div>
     <div class="page-actions">
-        <AppButton Variant="secondary" Icon="users" OnClick="GoCustomers">Customers</AppButton>
-        <AppButton Variant="primary" Icon="plus" OnClick="GoNewOrder">New Order</AppButton>
+        <AppButton Variant="secondary" Icon="users" OnClick="GoCustomers">Clientes</AppButton>
+        <AppButton Variant="primary" Icon="plus" OnClick="GoNewOrder">Novo Pedido</AppButton>
     </div>
 </div>
 
@@ -21,39 +21,39 @@ else if (_error is not null)
     <AppCard>
         <div class="state-error">
             <div class="empty-icon"><Icon Name="alert" /></div>
-            <p class="empty-title">Could not load dashboard</p>
+            <p class="empty-title">Não foi possível carregar o painel</p>
             <p class="empty-text">@_error</p>
-            <AppButton Variant="secondary" OnClick="Load">Try again</AppButton>
+            <AppButton Variant="secondary" OnClick="Load">Tentar novamente</AppButton>
         </div>
     </AppCard>
 }
 else
 {
-    <div class="section-title">Customers</div>
+    <div class="section-title">Clientes</div>
     <div class="metric-grid">
-        <Metric Label="Total Customers" Value="@_customers.Count.ToString()" Icon="users" Tone="" Foot="All registered clients" />
-        <Metric Label="New This Month" Value="@_newThisMonth.ToString()" Icon="user" Tone="green" Foot="@($"Since {DateTime.Now:MMM 1}")" />
+        <Metric Label="Total de Clientes" Value="@_customers.Count.ToString()" Icon="users" Tone="" Foot="Todos os clientes cadastrados" />
+        <Metric Label="Novos Neste Mês" Value="@_newThisMonth.ToString()" Icon="user" Tone="green" Foot="@($"Desde {Format.Date(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1))}")" />
     </div>
 
-    <div class="section-title">Orders</div>
+    <div class="section-title">Pedidos</div>
     <div class="metric-grid">
-        <Metric Label="Total Orders" Value="@_orders.Count.ToString()" Icon="cart" Tone="blue" Foot="All time" />
-        <Metric Label="Revenue Generated" Value="@Format.Currency(_revenue)" Icon="dollar" Tone="green" Foot="Sum of all orders" />
-        <Metric Label="Average Order Value" Value="@Format.Currency(_avgOrder)" Icon="trending-up" Tone="" Foot="Revenue / orders" />
+        <Metric Label="Total de Pedidos" Value="@_orders.Count.ToString()" Icon="cart" Tone="blue" Foot="Desde o início" />
+        <Metric Label="Receita Gerada" Value="@Format.Currency(_revenue)" Icon="dollar" Tone="green" Foot="Soma de todos os pedidos" />
+        <Metric Label="Ticket Médio" Value="@Format.Currency(_avgOrder)" Icon="trending-up" Tone="" Foot="Receita / pedidos" />
     </div>
 
-    <div class="section-title">Business Metrics</div>
+    <div class="section-title">Indicadores do Negócio</div>
     <div class="metric-grid">
-        <Metric Label="Total Revenue" Value="@Format.Currency(_revenue)" Icon="dollar" Tone="green" Foot="Lifetime" />
-        <Metric Label="Top Customer" Value="@_topCustomerName" Icon="award" Tone="amber" Foot="@_topCustomerFoot" />
-        <Metric Label="Orders Today" Value="@_ordersToday.ToString()" Icon="clock" Tone="blue" Foot="@DateTime.Now.ToString("dd MMM yyyy")" />
+        <Metric Label="Receita Total" Value="@Format.Currency(_revenue)" Icon="dollar" Tone="green" Foot="Acumulado" />
+        <Metric Label="Melhor Cliente" Value="@_topCustomerName" Icon="award" Tone="amber" Foot="@_topCustomerFoot" />
+        <Metric Label="Pedidos Hoje" Value="@_ordersToday.ToString()" Icon="clock" Tone="blue" Foot="@Format.Date(DateTime.Now)" />
     </div>
 
-    <div class="section-title">Recent orders</div>
-    <AppTable IsEmpty="!_orders.Any()" EmptyIcon="cart" EmptyTitle="No orders yet"
-              EmptyText="Create your first order to see it here.">
+    <div class="section-title">Pedidos recentes</div>
+    <AppTable IsEmpty="!_orders.Any()" EmptyIcon="cart" EmptyTitle="Nenhum pedido ainda"
+              EmptyText="Crie seu primeiro pedido para vê-lo aqui.">
         <Head>
-            <th>Order</th><th>Customer</th><th>Date</th><th class="text-right">Total</th><th>Status</th>
+            <th>Pedido</th><th>Cliente</th><th>Data</th><th class="text-right">Total</th><th>Status</th>
         </Head>
         <ChildContent>
             @foreach (var order in _recentOrders)
@@ -66,11 +66,11 @@ else
                     <td>
                         @if (IsLocked(order))
                         {
-                            <AppBadge Variant="neutral">Locked</AppBadge>
+                            <AppBadge Variant="neutral">Bloqueado</AppBadge>
                         }
                         else
                         {
-                            <AppBadge Variant="success">Editable</AppBadge>
+                            <AppBadge Variant="success">Editável</AppBadge>
                         }
                     </td>
                 </tr>
@@ -94,7 +94,7 @@ else
     private decimal _revenue;
     private decimal _avgOrder;
     private string _topCustomerName = "—";
-    private string _topCustomerFoot = "No data yet";
+    private string _topCustomerFoot = "Sem dados ainda";
     private List<OrderResponseDto> _recentOrders = new();
 
     protected override Task OnInitializedAsync() => Load();
@@ -124,7 +124,7 @@ else
             if (top is not null && top.TotalSpent > 0)
             {
                 _topCustomerName = top.CustomerFullName;
-                _topCustomerFoot = $"{Format.Currency(top.TotalSpent)} · {top.OrderCount} orders";
+                _topCustomerFoot = $"{Format.Currency(top.TotalSpent)} · {top.OrderCount} pedidos";
             }
 
             _recentOrders = _orders.OrderByDescending(o => o.OrderDate).Take(6).ToList();

@@ -172,9 +172,9 @@ public sealed class ApiClient
 
         return response.StatusCode switch
         {
-            HttpStatusCode.NotFound => "The requested resource was not found.",
-            HttpStatusCode.BadRequest => "The request could not be processed.",
-            _ => "Could not reach the server. Please try again."
+            HttpStatusCode.NotFound => "O recurso solicitado não foi encontrado.",
+            HttpStatusCode.BadRequest => "Não foi possível processar a solicitação.",
+            _ => "Não foi possível acessar o servidor. Tente novamente."
         };
     }
 }

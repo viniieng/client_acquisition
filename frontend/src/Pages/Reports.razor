@@ -3,8 +3,8 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">Reports</h1>
-        <p class="page-subtitle">Analytics on customer spending and revenue.</p>
+        <h1 class="page-title">Relatórios</h1>
+        <p class="page-subtitle">Análise de gastos dos clientes e receita.</p>
     </div>
 </div>
 
@@ -17,27 +17,27 @@ else if (_error is not null)
     <AppCard>
         <div class="state-error">
             <div class="empty-icon"><Icon Name="alert" /></div>
-            <p class="empty-title">Could not load reports</p>
+            <p class="empty-title">Não foi possível carregar os relatórios</p>
             <p class="empty-text">@_error</p>
-            <AppButton Variant="secondary" OnClick="Load">Try again</AppButton>
+            <AppButton Variant="secondary" OnClick="Load">Tentar novamente</AppButton>
         </div>
     </AppCard>
 }
 else
 {
-    <div class="section-title">Revenue Metrics</div>
+    <div class="section-title">Indicadores de Receita</div>
     <div class="metric-grid">
-        <Metric Label="Total Revenue" Value="@Format.Currency(_totalRevenue)" Icon="dollar" Tone="green" Foot="All customers" />
-        <Metric Label="Average Ticket" Value="@Format.Currency(_averageTicket)" Icon="trending-up" Tone="" Foot="Revenue / orders" />
-        <Metric Label="Number of Orders" Value="@_totalOrders.ToString()" Icon="cart" Tone="blue" Foot="All time" />
+        <Metric Label="Receita Total" Value="@Format.Currency(_totalRevenue)" Icon="dollar" Tone="green" Foot="Todos os clientes" />
+        <Metric Label="Ticket Médio" Value="@Format.Currency(_averageTicket)" Icon="trending-up" Tone="" Foot="Receita / pedidos" />
+        <Metric Label="Número de Pedidos" Value="@_totalOrders.ToString()" Icon="cart" Tone="blue" Foot="Desde o início" />
     </div>
 
-    <div class="section-title">Customer Spending</div>
+    <div class="section-title">Gastos por Cliente</div>
     <AppTable IsEmpty="!_spending.Any()" EmptyIcon="reports"
-              EmptyTitle="No spending data"
-              EmptyText="Once customers place orders, their spending appears here.">
+              EmptyTitle="Sem dados de gastos"
+              EmptyText="Quando os clientes fizerem pedidos, os gastos aparecerão aqui.">
         <Head>
-            <th>Customer</th><th class="text-right">Orders Count</th><th class="text-right">Total Spent</th><th style="width:30%">Share</th>
+            <th>Cliente</th><th class="text-right">Qtd. de Pedidos</th><th class="text-right">Total Gasto</th><th style="width:30%">Participação</th>
         </Head>
         <ChildContent>
             @foreach (var row in _spending)
