@@ -5,8 +5,6 @@ Aplicação full stack para gestão de clientes e pedidos, desenvolvida como des
 Construída com **ASP.NET Core .NET 8** no backend e **Blazor WebAssembly** no frontend, seguindo Clean Architecture e boas práticas de desenvolvimento.
 
 🔗 **[Acesse a aplicação em produção](https://client-acquisition-frontend.onrender.com)**  
-📦 **API:** https://client-acquisition-l9g5.onrender.com/api  
-📖 **Swagger:** https://client-acquisition-l9g5.onrender.com/swagger
 
 ---
 
