@@ -8,6 +8,6 @@ public interface IOrderRepository
     Task<IReadOnlyList<Order>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Order>> GetPagedAsync(int page, int pageSize, string? customerName, DateTime? startDate, DateTime? endDate, CancellationToken cancellationToken = default);
     Task AddAsync(Order order, CancellationToken cancellationToken = default);
-    void Update(Order order);
+    Task ReplaceItemsAsync(Order order, CancellationToken cancellationToken = default);
     void Delete(Order order);
 }

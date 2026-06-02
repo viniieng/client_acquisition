@@ -45,7 +45,7 @@ else
     {
         <div class="warning-banner">
             <Icon Name="alert" />
-            Este pedido não pode mais ser editado porque já se passaram mais de 24 horas desde sua criação.
+            Este pedido só poderá ser editado 24 horas após a criação (@Format.DateTimeShort(_order.CreatedAt.AddHours(24))).
         </div>
     }
 
@@ -190,7 +190,7 @@ else
             _order = await Api.GetOrderAsync(Id);
             if (_order is not null)
             {
-                _locked = DateTime.UtcNow - _order.CreatedAt > TimeSpan.FromHours(24);
+                _locked = !OrderEditRules.IsEditable(_order.CreatedAt);
                 _customer = await Api.GetCustomerAsync(_order.CustomerId);
             }
         }
@@ -207,6 +207,11 @@ else
     private void OpenEdit()
     {
         if (_order is null) return;
+        if (_locked)
+        {
+            Toasts.ShowError(OrderEditRules.LockMessage);
+            return;
+        }
         _editForm = new OrderForm
         {
             CustomerId = _order.CustomerId,
@@ -235,6 +240,12 @@ else
     private async Task SaveEdit()
     {
         _editError = null;
+        if (_locked)
+        {
+            _editError = OrderEditRules.LockMessage;
+            return;
+        }
+
         if (_editForm.Items.Count == 0 || _editForm.Items.Any(i => string.IsNullOrWhiteSpace(i.ProductName) || i.Quantity < 1 || i.UnitPrice <= 0))
         {
             _editError = "Cada item precisa de um nome de produto, quantidade ≥ 1 e preço unitário > 0.";

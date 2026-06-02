@@ -51,11 +51,15 @@ public sealed class Order : Entity
         RecalculateTotal();
     }
 
+    public const string EditLockMessage = "Pedidos só podem ser editados 24 horas após a criação.";
+
+    public bool IsEditable() => DateTime.UtcNow - CreatedAt >= TimeSpan.FromHours(24);
+
     public void EnsureEditable()
     {
-        if (DateTime.UtcNow - CreatedAt > TimeSpan.FromHours(24))
+        if (!IsEditable())
         {
-            throw new InvalidOperationException("Order cannot be changed after 24 hours.");
+            throw new InvalidOperationException(EditLockMessage);
         }
     }
 

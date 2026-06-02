@@ -65,9 +65,24 @@ public sealed class OrderRepository : IOrderRepository
         return _context.Orders.AddAsync(order, cancellationToken).AsTask();
     }
 
-    public void Update(Order order)
+    public async Task ReplaceItemsAsync(Order order, CancellationToken cancellationToken = default)
     {
-        _context.Orders.Update(order);
+        var existingItems = await _context.OrderItems
+            .Where(item => item.OrderId == order.Id)
+            .ToListAsync(cancellationToken);
+
+        if (existingItems.Count > 0)
+        {
+            _context.OrderItems.RemoveRange(existingItems);
+        }
+
+        foreach (var item in order.Items)
+        {
+            if (_context.Entry(item).State == EntityState.Detached)
+            {
+                await _context.OrderItems.AddAsync(item, cancellationToken);
+            }
+        }
     }
 
     public void Delete(Order order)

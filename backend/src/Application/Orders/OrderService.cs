@@ -56,9 +56,14 @@ public sealed class OrderService : IOrderService
             throw new BusinessRuleException("Customer not found.");
         }
 
+        if (!order.IsEditable())
+        {
+            throw new BusinessRuleException(Order.EditLockMessage);
+        }
+
         var items = dto.Items.Select(item => new OrderItem(item.ProductName, item.Quantity, item.UnitPrice)).ToList();
         order.Update(dto.OrderDate, items);
-        _orderRepository.Update(order);
+        await _orderRepository.ReplaceItemsAsync(order, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return MapOrder(order, customer.FullName);
@@ -98,7 +103,6 @@ public sealed class OrderService : IOrderService
             return;
         }
 
-        order.EnsureEditable();
         _orderRepository.Delete(order);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }

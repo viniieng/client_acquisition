@@ -8,6 +8,8 @@
            value="@Value"
            placeholder="@Placeholder"
            disabled="@Disabled"
+           inputmode="@InputMode"
+           maxlength="@(MaxLength > 0 ? MaxLength : null)"
            @oninput="HandleInput" />
     @if (HasError)
     {
@@ -24,6 +26,8 @@
     [Parameter] public string? Value { get; set; }
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
     [Parameter] public string Type { get; set; } = "text";
+    [Parameter] public string? InputMode { get; set; }
+    [Parameter] public int? MaxLength { get; set; }
     [Parameter] public string? Placeholder { get; set; }
     [Parameter] public string? Error { get; set; }
     [Parameter] public string? Hint { get; set; }

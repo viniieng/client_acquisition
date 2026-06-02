@@ -18,7 +18,31 @@ public sealed class OrderRulesTests
     }
 
     [Fact]
-    public void EnsureEditable_Throws_WhenOrderIsOlderThan24Hours()
+    public void EnsureEditable_Throws_WhenOrderIsYoungerThan24Hours()
+    {
+        var order = new Order(Guid.NewGuid(), DateTime.UtcNow, new[]
+        {
+            new OrderItem("Keyboard", 1, 150m)
+        });
+
+        var exception = Assert.Throws<InvalidOperationException>(() => order.EnsureEditable());
+
+        Assert.Equal(Order.EditLockMessage, exception.Message);
+    }
+
+    [Fact]
+    public void IsEditable_ReturnsFalse_WhenOrderIsYoungerThan24Hours()
+    {
+        var order = new Order(Guid.NewGuid(), DateTime.UtcNow, new[]
+        {
+            new OrderItem("Keyboard", 1, 150m)
+        });
+
+        Assert.False(order.IsEditable());
+    }
+
+    [Fact]
+    public void IsEditable_ReturnsTrue_WhenOrderIsOlderThan24Hours()
     {
         var order = new Order(Guid.NewGuid(), DateTime.UtcNow, new[]
         {
@@ -28,8 +52,20 @@ public sealed class OrderRulesTests
         var createdAtProperty = typeof(Order).GetProperty("CreatedAt", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         createdAtProperty!.SetValue(order, DateTime.UtcNow.AddHours(-25));
 
-        var exception = Assert.Throws<InvalidOperationException>(() => order.EnsureEditable());
+        Assert.True(order.IsEditable());
+    }
 
-        Assert.Equal("Order cannot be changed after 24 hours.", exception.Message);
+    [Fact]
+    public void EnsureEditable_DoesNotThrow_WhenOrderIsOlderThan24Hours()
+    {
+        var order = new Order(Guid.NewGuid(), DateTime.UtcNow, new[]
+        {
+            new OrderItem("Keyboard", 1, 150m)
+        });
+
+        var createdAtProperty = typeof(Order).GetProperty("CreatedAt", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        createdAtProperty!.SetValue(order, DateTime.UtcNow.AddHours(-25));
+
+        order.EnsureEditable();
     }
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"log"
 	"net/http"
@@ -10,11 +11,25 @@ import (
 )
 
 func main() {
-	root := flag.String("root", "/www", "static file root")
+	root   := flag.String("root", "/www", "static file root")
 	listen := flag.String("listen", ":8080", "listen address")
 	flag.Parse()
 
-	handler := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	apiBaseUrl := os.Getenv("API_BASE_URL")
+	if apiBaseUrl == "" {
+		apiBaseUrl = "http://localhost:5000/api/"
+	}
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/api-config.json", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"ApiBaseUrl": apiBaseUrl,
+		})
+	})
+
+	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		cleanPath := filepath.Clean(request.URL.Path)
 		requestedPath := filepath.Join(*root, cleanPath)
 
@@ -31,6 +46,6 @@ func main() {
 		http.ServeFile(writer, request, filepath.Join(*root, "index.html"))
 	})
 
-	log.Printf("serving %s on %s", *root, *listen)
-	log.Fatal(http.ListenAndServe(*listen, handler))
+	log.Printf("serving %s on %s (API → %s)", *root, *listen, apiBaseUrl)
+	log.Fatal(http.ListenAndServe(*listen, mux))
 }

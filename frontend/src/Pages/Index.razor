@@ -139,7 +139,7 @@ else
         }
     }
 
-    private static bool IsLocked(OrderResponseDto order) => DateTime.UtcNow - order.CreatedAt > TimeSpan.FromHours(24);
+    private static bool IsLocked(OrderResponseDto order) => !OrderEditRules.IsEditable(order.CreatedAt);
 
     private void GoCustomers() => Nav.NavigateTo("customers");
     private void GoNewOrder() => Nav.NavigateTo("orders?new=1");

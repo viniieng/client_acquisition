@@ -90,8 +90,8 @@
         <AppInput Label="E-mail" Required="true" Type="email" @bind-Value="_form.Email"
                   Placeholder="nome@exemplo.com" Error="@Err("email")" />
         <AppInput Label="CPF" Required="true" Value="@_cpfText" ValueChanged="OnCpfChanged"
-                  Placeholder="000.000.000-00" Error="@Err("cpf")"
-                  Hint="@_cpfHint" HintOk="_cpfOk" />
+                  Placeholder="000.000.000-00" InputMode="numeric" MaxLength="14"
+                  Error="@Err("cpf")" Hint="@_cpfHint" HintOk="_cpfOk" />
         <div class="field">
             <label class="field-label">Data de Nascimento <span class="req">*</span></label>
             <input class="input @(Err("birthDate") is not null ? "invalid" : null)" type="date"
@@ -236,7 +236,7 @@
 
     private void OnCpfChanged(string value)
     {
-        _cpfText = value;
+        _cpfText = Cpf.FormatInput(value);
         _errors.Remove("cpf");
         EvaluateCpf();
     }

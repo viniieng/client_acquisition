@@ -20,5 +20,9 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             .WithOne()
             .HasForeignKey(item => item.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(order => order.Items)
+            .HasField("_items")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

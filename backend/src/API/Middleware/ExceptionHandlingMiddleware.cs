@@ -24,6 +24,10 @@ public sealed class ExceptionHandlingMiddleware
         {
             await WriteProblemAsync(context, StatusCodes.Status400BadRequest, exception.Message);
         }
+        catch (InvalidOperationException exception)
+        {
+            await WriteProblemAsync(context, StatusCodes.Status400BadRequest, exception.Message);
+        }
         catch (KeyNotFoundException exception)
         {
             await WriteProblemAsync(context, StatusCodes.Status404NotFound, exception.Message);

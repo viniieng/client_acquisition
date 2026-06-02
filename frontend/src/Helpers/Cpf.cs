@@ -26,8 +26,29 @@ public static class Cpf
             return cpf ?? string.Empty;
         }
 
-        return $"{digits[..3]}.{digits[3..6]}.{digits[6..9]}-{digits[9..]}";
+        return FormatDigits(digits);
     }
+
+    /// <summary>Formata enquanto o usuário digita (máx. 11 dígitos).</summary>
+    public static string FormatInput(string cpf)
+    {
+        var digits = Digits(cpf);
+        if (digits.Length > 11)
+        {
+            digits = digits[..11];
+        }
+
+        return FormatDigits(digits);
+    }
+
+    private static string FormatDigits(string digits) => digits.Length switch
+    {
+        0 => string.Empty,
+        <= 3 => digits,
+        <= 6 => $"{digits[..3]}.{digits[3..]}",
+        <= 9 => $"{digits[..3]}.{digits[3..6]}.{digits[6..]}",
+        _ => $"{digits[..3]}.{digits[3..6]}.{digits[6..9]}-{digits[9..]}"
+    };
 
     private static int Digit(int[] numbers, int count, int weight)
     {

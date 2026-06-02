@@ -7,11 +7,9 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// HttpClient pointing at the backend API. BaseAddress must end with "/api/" so the
-// relative endpoints in ApiClient (e.g. "customers") resolve to ".../api/customers".
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://client-acquisition-l9g5.onrender.com/api/")
+    BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!)
 });
 
 builder.Services.AddScoped<ApiClient>();
